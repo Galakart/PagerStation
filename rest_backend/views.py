@@ -1,3 +1,10 @@
-from django.shortcuts import render
+from rest_framework import viewsets
 
-# Create your views here.
+
+from .models import DirectMessage
+from .serializers import DirectMessageSerializer
+
+
+class DirectMessageViewSet(viewsets.ModelViewSet):
+    serializer_class = DirectMessageSerializer
+    queryset = DirectMessage.objects.all()
