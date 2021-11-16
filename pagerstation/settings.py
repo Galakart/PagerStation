@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 import os
 from pathlib import Path
-from celery.schedules import crontab
 
 import dotenv
 
@@ -100,6 +99,15 @@ DATABASES = {
     }
 }
 
+# for memcache_lock
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/var/tmp/django_cache',
+    }
+}
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -152,8 +160,8 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
-    'send-every-single-minute': {
+    'send-every-5-sec': {
         'task': 'pocsag_sender.tasks.hello_world',
-        'schedule': crontab(minute='*'),
+        'schedule': 5.0,
     },
 }
