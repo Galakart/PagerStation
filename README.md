@@ -7,4 +7,20 @@ chmod 600 .env
 https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-18-04-ru
 sudo apt install redis-server
 
+install mariadb with user
+sudo apt install mariadb-server mariadb-client
+https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-20-04-ru 
+sudo mysql_secure_installation
+current root password - none (нажать enter)
+set root password - no
+остальные yes
+sudo mariadb
+GRANT ALL ON *.* TO 'admin'@'localhost' IDENTIFIED BY 'password' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+exit
+
+sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
+bind-address 0.0.0.0
+sudo service mariadb restart
+
 celery -A pagerstation worker -l info -B

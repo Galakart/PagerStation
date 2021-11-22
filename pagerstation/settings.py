@@ -108,7 +108,6 @@ CACHES = {
 }
 
 
-
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -161,7 +160,7 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
     'send-every-5-sec': {
-        'task': 'pocsag_sender.tasks.hello_world',
+        'task': 'pocsag_sender.tasks.periodic_send',
         'schedule': 5.0,
     },
 }

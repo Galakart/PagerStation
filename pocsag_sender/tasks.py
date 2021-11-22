@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 
+import os
 import time
 from contextlib import contextmanager
 
@@ -7,6 +8,8 @@ from django.conf import settings as conf_settings
 from django.core.cache import cache
 from pagerstation.celery import app
 from rest_backend.models import DirectMessage
+
+import pocsag_encoder
 
 IS_POCSAG_TRANSMITTER_CONNECTED = conf_settings.IS_POCSAG_TRANSMITTER_CONNECTED
 
@@ -26,17 +29,23 @@ def memcache_lock(lock_id, oid):
 
 
 @app.task(bind=True)
-def hello_world(self):
+def periodic_send(self):
     with memcache_lock(self.name, self.app.oid) as acquired:
         if acquired:
-            for i in range(30):
-                print(f'now to {i}')
-                time.sleep(1)
-
-    # messages = DirectMessage.objects.filter(is_sent=False)
-    # for message in messages:
-    #     print(message.capcode)
-    #     DirectMessage.objects.filter(pk=message.pk).update(is_sent=True)
-    #     if not IS_POCSAG_TRANSMITTER_CONNECTED:
-    #         print('Sending pocsag!')
-    #         continue
+            direct_messages = DirectMessage.objects.filter(is_sent=False)
+            if not direct_messages:
+                print('no messages')
+                return
+            for direct_message in direct_messages:
+                if IS_POCSAG_TRANSMITTER_CONNECTED and os.path.exists('./pocsag'):
+                    print('Sending POCSAG!')
+                    message_text = pocsag_encoder.encode_message(
+                        direct_message.message, 2)
+                    os.system(
+                        f'echo "{direct_message.capcode}:{message_text}" | sudo ./pocsag -f "{direct_message.freq}" -b {direct_message.fbit} -t 1')
+                else:
+                    print(
+                        'Transmitter is not connected, so message will be sent VIRTUALLY')
+                    time.sleep(10)
+                DirectMessage.objects.filter(
+                    pk=direct_message.pk).update(is_sent=True)
