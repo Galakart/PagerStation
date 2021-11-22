@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MaxValueValidator
 
 
 class DirectMessage(models.Model):
@@ -10,7 +11,7 @@ class DirectMessage(models.Model):
         (3, 3),
     )
 
-    capcode = models.CharField(max_length=7, verbose_name='Капкод')
+    capcode = models.PositiveSmallIntegerField(verbose_name='Капкод', validators=[MaxValueValidator(9999999)])
     freq = models.CharField(max_length=9, verbose_name='Частота (Гц)')
     fbit = models.PositiveSmallIntegerField(choices=FBITS, verbose_name='Бит источника')
     message = models.TextField(max_length=1500, verbose_name='Сообщение')
