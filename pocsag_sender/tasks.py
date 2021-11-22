@@ -9,7 +9,8 @@ from django.core.cache import cache
 from pagerstation.celery import app
 from rest_backend.models import DirectMessage
 
-import pocsag_encoder
+# import pocsag_encoder
+from .pocsag_encoder import encode_message
 
 IS_POCSAG_TRANSMITTER_CONNECTED = conf_settings.IS_POCSAG_TRANSMITTER_CONNECTED
 
@@ -39,7 +40,7 @@ def periodic_send(self):
             for direct_message in direct_messages:
                 if IS_POCSAG_TRANSMITTER_CONNECTED and os.path.exists('./pocsag'):
                     print('Sending POCSAG!')
-                    message_text = pocsag_encoder.encode_message(
+                    message_text = encode_message(
                         direct_message.message, 2)
                     capcode = f'{direct_message.capcode:07d}'
                     os.system(

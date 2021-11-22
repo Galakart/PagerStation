@@ -26,4 +26,6 @@ sudo service mariadb restart
 python manage.py migrate
 python manage.py createsuperuser
 
+pocsag binary to the root folder (where req.txt is, for example)
+
 celery -A pagerstation worker -l info -B
