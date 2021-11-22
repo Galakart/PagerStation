@@ -41,8 +41,9 @@ def periodic_send(self):
                     print('Sending POCSAG!')
                     message_text = pocsag_encoder.encode_message(
                         direct_message.message, 2)
+                    capcode = f'{direct_message.capcode:07d}'
                     os.system(
-                        f'echo "{direct_message.capcode}:{message_text}" | sudo ./pocsag -f "{direct_message.freq}" -b {direct_message.fbit} -t 1')
+                        f'echo "{capcode}:{message_text}" | sudo ./pocsag -f "{direct_message.freq}" -b {direct_message.fbit} -t 1')
                 else:
                     print(
                         'Transmitter is not connected, so message will be sent VIRTUALLY')

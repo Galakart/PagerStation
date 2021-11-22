@@ -23,4 +23,7 @@ sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
 bind-address 0.0.0.0
 sudo service mariadb restart
 
+python manage.py migrate
+python manage.py createsuperuser
+
 celery -A pagerstation worker -l info -B
