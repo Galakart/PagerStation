@@ -36,9 +36,6 @@ def periodic_send(self):
             #     print(f'now to {i}')
             #     time.sleep(1)
             direct_messages = DirectMessage.objects.filter(is_sent=False)
-            if not direct_messages:
-                print('no messages')
-                return
             for direct_message in direct_messages:
                 if IS_POCSAG_TRANSMITTER_CONNECTED and os.path.exists('./pocsag'):
                     print('Sending POCSAG!')
