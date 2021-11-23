@@ -2,5 +2,6 @@ celery==5.2.0
 Django==3.2.9
 djangorestframework==3.12.4
 mysqlclient==2.0.3
+pymemcache==3.5.0
 python-dotenv==0.19.1
 redis==3.5.3

@@ -9,7 +9,6 @@ from django.core.cache import cache
 from pagerstation.celery import app
 from rest_backend.models import DirectMessage
 
-# import pocsag_encoder
 from .pocsag_encoder import encode_message
 
 IS_POCSAG_TRANSMITTER_CONNECTED = conf_settings.IS_POCSAG_TRANSMITTER_CONNECTED
@@ -33,6 +32,9 @@ def memcache_lock(lock_id, oid):
 def periodic_send(self):
     with memcache_lock(self.name, self.app.oid) as acquired:
         if acquired:
+            # for i in range(30):
+            #     print(f'now to {i}')
+            #     time.sleep(1)
             direct_messages = DirectMessage.objects.filter(is_sent=False)
             if not direct_messages:
                 print('no messages')

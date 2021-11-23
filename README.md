@@ -7,6 +7,9 @@ chmod 600 .env
 https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-18-04-ru
 sudo apt install redis-server
 
+sudo apt install memcached
+pip install pymemcache
+
 install mariadb with user
 sudo apt install mariadb-server mariadb-client
 https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-20-04-ru 
