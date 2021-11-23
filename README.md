@@ -43,8 +43,8 @@ After=network.target
 [Service]
 User=root
 Group=www-data
-WorkingDirectory=/home/user/cloudproject
-ExecStart=/home/user/cloudproject/cloudenv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/home/user/myproject/myproject.sock myproject.wsgi:application
+WorkingDirectory=/home/pi/services/pagerstation
+ExecStart=/home/pi/services/pagerstation/venv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/home/pi/services/pagerstation/pagerstation.sock pagerstation.wsgi:application
 
 [Install]
 WantedBy=multi-user.target
@@ -52,7 +52,7 @@ WantedBy=multi-user.target
 
 
 sudo apt install nginx
-
+sudo rm /etc/nginx/sites-enabled/default
 sudo nano /etc/nginx/sites-available/pagerstation_backend
 
 server {
@@ -61,12 +61,12 @@ server_name ;
 
 location = /favicon.ico { access_log off; log_not_found off; }
 location /static/ {
-root /root/cloudproject;
+root /home/pi/services/pagerstation;
 }
 
 location / {
 include proxy_params;
-proxy_pass http://unix:/root/cloudproject/cloudproject.sock;
+proxy_pass http://unix:/home/pi/services/pagerstation/pagerstation.sock;
 }
 }
 
@@ -80,15 +80,15 @@ sudo systemctl restart nginx
 sudo nano /etc/systemd/system/pagerstation_celery_worker.service
 
 [Unit]
-Description=Celery Service
+Description= PagerStation Celery Worker Service
 After=network.target
 
 [Service]
 Type=forking
 User=pi
 Group=pi
-EnvironmentFile=/home/user/pagerstation/celery.conf
-WorkingDirectory=/home/user/pagerstation
+EnvironmentFile=/home/pi/services/pagerstation/celery.conf
+WorkingDirectory=/home/pi/services/pagerstation
 ExecStart=/bin/sh -c '${CELERY_BIN} -A $CELERY_APP multi start $CELERYD_NODES \
     --pidfile=${CELERYD_PID_FILE} --logfile=${CELERYD_LOG_FILE} \
     --loglevel="${CELERYD_LOG_LEVEL}" $CELERYD_OPTS'
@@ -106,15 +106,15 @@ WantedBy=multi-user.target
 sudo nano /etc/systemd/system/pagerstation_celery_beat.service
 
 [Unit]
-Description=Celery Beat Service
+Description=PagerStation Celery Beat Service
 After=network.target
 
 [Service]
 Type=simple
 User=pi
 Group=pi
-EnvironmentFile=/home/user/pagerstation/celery.conf
-WorkingDirectory=/home/user/pagerstation
+EnvironmentFile=/home/pi/services/pagerstation/celery.conf
+WorkingDirectory=/home/pi/services/pagerstation
 ExecStart=/bin/sh -c '${CELERY_BIN} -A ${CELERY_APP} beat  \
     --pidfile=${CELERYBEAT_PID_FILE} \
     --logfile=${CELERYBEAT_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL}'
@@ -122,6 +122,10 @@ Restart=always
 
 [Install]
 WantedBy=multi-user.target
+
+sudo mkdir /var/log/celery /var/run/celery
+sudo chown pi:pi /var/log/celery /var/run/celery 
+sudo chmod 0755 /var/log/celery /var/run/celery
 
 sudo systemctl daemon-reload
 sudo systemctl enable pagerstation_gunicorn
