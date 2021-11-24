@@ -44,7 +44,7 @@ After=network.target
 User=root
 Group=www-data
 WorkingDirectory=/home/pi/services/pagerstation
-ExecStart=/home/pi/services/pagerstation/venv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/home/pi/services/pagerstation/pagerstation.sock pagerstation.wsgi:application
+ExecStart=/home/pi/services/pagerstation/venv/bin/gunicorn --access-logfile - --workers 2 --bind unix:/home/pi/services/pagerstation/pagerstation.sock pagerstation.wsgi:application
 
 [Install]
 WantedBy=multi-user.target
@@ -53,7 +53,7 @@ WantedBy=multi-user.target
 
 sudo apt install nginx
 sudo rm /etc/nginx/sites-enabled/default
-sudo nano /etc/nginx/sites-available/pagerstation_backend
+sudo nano /etc/nginx/sites-available/pagerstation
 
 server {
 listen 80;
@@ -70,7 +70,7 @@ proxy_pass http://unix:/home/pi/services/pagerstation/pagerstation.sock;
 }
 }
 
-sudo ln -s /etc/nginx/sites-available/pagerstation_backend /etc/nginx/sites-enabled
+sudo ln -s /etc/nginx/sites-available/pagerstation /etc/nginx/sites-enabled
 
 sudo nginx -t
 sudo systemctl restart nginx

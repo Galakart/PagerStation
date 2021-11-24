@@ -1,5 +1,8 @@
 from django.contrib import admin
 
-from .models import DirectMessage
+from .models import DirectMessage, Transmitter, Pager, Client
 
 admin.site.register(DirectMessage)
+admin.site.register(Transmitter)
+admin.site.register(Pager)
+admin.site.register(Client)
