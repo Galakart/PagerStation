@@ -78,6 +78,7 @@ sudo nano /etc/systemd/system/pagerstation_celery_worker.service
 [Unit]
 Description= PagerStation Celery Worker Service
 After=network.target
+RuntimeDirectory=celery
 
 [Service]
 Type=forking
@@ -104,6 +105,7 @@ sudo nano /etc/systemd/system/pagerstation_celery_beat.service
 [Unit]
 Description=PagerStation Celery Beat Service
 After=network.target
+RuntimeDirectory=celery
 
 [Service]
 Type=simple
@@ -119,9 +121,9 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 
-sudo mkdir /var/log/celery /var/run/celery
-sudo chown pi:pi /var/log/celery /var/run/celery 
-sudo chmod 0755 /var/log/celery /var/run/celery
+sudo mkdir /var/log/celery
+sudo chown pi:pi /var/log/celery
+sudo chmod 0755 /var/log/celery
 
 sudo systemctl daemon-reload
 sudo systemctl enable pagerstation_gunicorn

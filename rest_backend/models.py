@@ -65,7 +65,8 @@ class Pager(models.Model):
 class Client(models.Model):
     """Клиент, и его пейджеры"""
     fio = models.CharField(max_length=200, verbose_name='ФИО клиента')
-    datar = models.DateField(verbose_name='Дата рождения', blank=True, null=True)
+    datar = models.DateField(
+        verbose_name='Дата рождения', blank=True, null=True)
     pagers = models.ManyToManyField(Pager, verbose_name='Пейджеры клиента')
 
     def __str__(self):
@@ -73,9 +74,9 @@ class Client(models.Model):
 
 
 class PrivateMessage(models.Model):
-    """Приватное сообщение для пользователя"""
-    client = models.ForeignKey(
-        Client, on_delete=models.CASCADE, verbose_name='Получатель')
+    """Приватное сообщение на конкретный пейджер"""
+    pager = models.ForeignKey(
+        Pager, on_delete=models.CASCADE, verbose_name='Пейджер-получатель')
     message = models.TextField(
         max_length=MESSAGE_MAX_LENGTH, verbose_name='Сообщение')
     date_create = models.DateTimeField(default=timezone.now, editable=False)
