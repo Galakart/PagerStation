@@ -78,7 +78,6 @@ sudo nano /etc/systemd/system/pagerstation_celery_worker.service
 [Unit]
 Description= PagerStation Celery Worker Service
 After=network.target
-RuntimeDirectory=celery
 
 [Service]
 Type=forking
@@ -86,6 +85,7 @@ User=pi
 Group=pi
 EnvironmentFile=/home/pi/services/pagerstation/celery.conf
 WorkingDirectory=/home/pi/services/pagerstation
+RuntimeDirectory=celery
 ExecStart=/bin/sh -c '${CELERY_BIN} -A $CELERY_APP multi start $CELERYD_NODES \
     --pidfile=${CELERYD_PID_FILE} --logfile=${CELERYD_LOG_FILE} \
     --loglevel="${CELERYD_LOG_LEVEL}" $CELERYD_OPTS'
@@ -105,7 +105,6 @@ sudo nano /etc/systemd/system/pagerstation_celery_beat.service
 [Unit]
 Description=PagerStation Celery Beat Service
 After=network.target
-RuntimeDirectory=celery
 
 [Service]
 Type=simple
@@ -113,6 +112,7 @@ User=pi
 Group=pi
 EnvironmentFile=/home/pi/services/pagerstation/celery.conf
 WorkingDirectory=/home/pi/services/pagerstation
+RuntimeDirectory=celery
 ExecStart=/bin/sh -c '${CELERY_BIN} -A ${CELERY_APP} beat  \
     --pidfile=${CELERYBEAT_PID_FILE} \
     --logfile=${CELERYBEAT_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL}'

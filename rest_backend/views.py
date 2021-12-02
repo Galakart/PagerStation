@@ -21,10 +21,10 @@ class MessageBySubscriberNumberViewSet(viewsets.ViewSet):
         message = post_data['message']
 
         try:
-            pager_id = Pager.objects.get(
+            id_pager = Pager.objects.get(
                 subscriber_number=subscriber_number).id
         except Pager.DoesNotExist:
             return Response({'status': 'fail'}, status=status.HTTP_404_NOT_FOUND)
 
-        PrivateMessage.objects.create(pager_id=pager_id, message=message)
+        PrivateMessage.objects.create(pager_id=id_pager, message=message)
         return Response({'status': 'ok'})
