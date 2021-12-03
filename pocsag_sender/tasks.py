@@ -5,9 +5,10 @@ from contextlib import contextmanager
 from django.conf import settings as conf_settings
 from django.core.cache import cache
 from pagerstation.celery import app
-from rest_backend.models import DirectMessage, PrivateMessage, Pager, Transmitter
+from rest_backend.models import (DirectMessage, Pager, PrivateMessage,
+                                 Transmitter)
 
-from .pocsag_encoder import encode_message
+from . import pocsag_encoder
 
 IS_POCSAG_TRANSMITTER_CONNECTED = conf_settings.IS_POCSAG_TRANSMITTER_CONNECTED
 
@@ -34,11 +35,11 @@ def periodic_send(self):
             #     print(f'now to {i}')
             #     time.sleep(1)
 
-            direct_messages = DirectMessage.objects.filter(is_sent=False)
+            direct_messages = DirectMessage.objects.filter(is_sent=False)[:10]
             for direct_message in direct_messages:
                 if IS_POCSAG_TRANSMITTER_CONNECTED and os.path.exists('./pocsag'):
                     print('Sending direct POCSAG!')
-                    message_text = encode_message(
+                    message_text = pocsag_encoder.encode_message(
                         direct_message.message, 2)
                     capcode = f'{direct_message.capcode:07d}'
                     os.system(
@@ -50,7 +51,7 @@ def periodic_send(self):
                 DirectMessage.objects.filter(
                     pk=direct_message.pk).update(is_sent=True)
 
-            private_messages = PrivateMessage.objects.filter(is_sent=False)
+            private_messages = PrivateMessage.objects.filter(is_sent=False)[:10]
             for private_message in private_messages:
                 if IS_POCSAG_TRANSMITTER_CONNECTED and os.path.exists('./pocsag'):
                     print('Sending private POCSAG!')
@@ -61,7 +62,7 @@ def periodic_send(self):
                     id_transmitter = Pager.objects.get(
                         id=id_pager).transmitter_id
                     freq = Transmitter.objects.get(id=id_transmitter).freq
-                    message_text = encode_message(
+                    message_text = pocsag_encoder.encode_message(
                         private_message.message, 2)  # TODO передавать правильную кодировку
                     os.system(
                         f'echo "{capcode}:{message_text}" | sudo ./pocsag -f "{freq}" -b {fbit} -t 1')

@@ -15,6 +15,17 @@ CODEPAGES = (
     (3, 'linguist'),
 )
 
+NEWS_CATEGORIES = (
+    (1, 'экстренное'),
+    (2, 'новости'),
+    (3, 'погода'),
+    (4, 'курсы валют'),
+    (5, 'юмор'),
+    (6, 'гороскоп'),
+    (7, 'нет'),
+    (8, 'нет'),
+)
+
 MESSAGE_MAX_LENGTH = 1500
 
 
@@ -26,6 +37,8 @@ class DirectMessage(models.Model):
                                        MinValueValidator(60000000), MaxValueValidator(999999999)])
     fbit = models.PositiveSmallIntegerField(
         choices=FBITS, verbose_name='Бит источника')
+    codepage = models.PositiveSmallIntegerField(
+        choices=CODEPAGES, verbose_name='Тип кодировки')
     message = models.TextField(
         max_length=MESSAGE_MAX_LENGTH, verbose_name='Сообщение')
     date_create = models.DateTimeField(default=timezone.now, editable=False)
@@ -79,6 +92,33 @@ class PrivateMessage(models.Model):
         Pager, on_delete=models.CASCADE, verbose_name='Пейджер-получатель')
     message = models.TextField(
         max_length=MESSAGE_MAX_LENGTH, verbose_name='Сообщение')
+    date_create = models.DateTimeField(default=timezone.now, editable=False)
+    is_sent = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.message[:10])
+
+
+class NewsChannel(models.Model):
+    """Новостные каналы"""
+    category = models.PositiveSmallIntegerField(
+        choices=NEWS_CATEGORIES, verbose_name='Тип рассылки')
+    capcode = models.PositiveIntegerField(
+        verbose_name='Новостной капкод', validators=[MaxValueValidator(9999999)])
+    fbit = models.PositiveSmallIntegerField(
+        choices=FBITS, verbose_name='Бит источника')
+    codepage = models.PositiveSmallIntegerField(
+        choices=CODEPAGES, verbose_name='Тип кодировки')
+    transmitter = models.ForeignKey(
+        Transmitter, on_delete=models.CASCADE, verbose_name='Трансмиттер')
+
+
+class NewsMessage(models.Model):
+    """Новостное сообщение"""
+    channel = models.ForeignKey(
+        NewsChannel, on_delete=models.CASCADE, verbose_name='Новостной канал')
+    message = models.TextField(
+        max_length=MESSAGE_MAX_LENGTH, verbose_name='Новостное сообщение')
     date_create = models.DateTimeField(default=timezone.now, editable=False)
     is_sent = models.BooleanField(default=False)
 
