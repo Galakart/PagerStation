@@ -112,13 +112,16 @@ class NewsChannel(models.Model):
     transmitter = models.ForeignKey(
         Transmitter, on_delete=models.CASCADE, verbose_name='Трансмиттер')
 
+    def __str__(self):
+        return str(self.category)
+
 
 class NewsMessage(models.Model):
     """Новостное сообщение"""
-    channel = models.ForeignKey(
-        NewsChannel, on_delete=models.CASCADE, verbose_name='Новостной канал')
+    category = models.PositiveSmallIntegerField(
+        choices=NEWS_CATEGORIES, verbose_name='Тип рассылки')
     message = models.TextField(
-        max_length=MESSAGE_MAX_LENGTH, verbose_name='Новостное сообщение')
+        max_length=MESSAGE_MAX_LENGTH, verbose_name='Текст новостного сообщения')
     date_create = models.DateTimeField(default=timezone.now, editable=False)
     is_sent = models.BooleanField(default=False)
 

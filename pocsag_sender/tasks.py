@@ -6,7 +6,7 @@ from django.conf import settings as conf_settings
 from django.core.cache import cache
 from pagerstation.celery import app
 from rest_backend.models import (DirectMessage, Pager, PrivateMessage,
-                                 Transmitter)
+                                 Transmitter, NewsMessage, NewsChannel)
 
 from . import pocsag_encoder
 
@@ -51,7 +51,8 @@ def periodic_send(self):
                 DirectMessage.objects.filter(
                     pk=direct_message.pk).update(is_sent=True)
 
-            private_messages = PrivateMessage.objects.filter(is_sent=False)[:10]
+            private_messages = PrivateMessage.objects.filter(is_sent=False)[
+                :10]
             for private_message in private_messages:
                 if IS_POCSAG_TRANSMITTER_CONNECTED and os.path.exists('./pocsag'):
                     print('Sending private POCSAG!')
@@ -72,3 +73,27 @@ def periodic_send(self):
                     time.sleep(10)
                 PrivateMessage.objects.filter(
                     pk=private_message.pk).update(is_sent=True)
+
+            news_messages = NewsMessage.objects.filter(is_sent=False)[:10]
+            for news_message in news_messages:
+                if IS_POCSAG_TRANSMITTER_CONNECTED and os.path.exists('./pocsag'):
+                    print('Sending news POCSAG!')
+                    id_category = news_message.category
+                    news_channels = NewsChannel.objects.filter(
+                        category=id_category)
+                    for news_channel in news_channels:
+                        capcode = news_channel.capcode
+                        capcode = f'{capcode:07d}'
+                        fbit = news_channel.fbit
+                        id_transmitter = news_channel.transmitter_id
+                        freq = Transmitter.objects.get(id=id_transmitter).freq
+                        message_text = pocsag_encoder.encode_message(
+                            news_message.message, 2)  # TODO передавать правильную кодировку
+                        os.system(
+                            f'echo "{capcode}:{message_text}" | sudo ./pocsag -f "{freq}" -b {fbit} -t 1')
+                else:
+                    print(
+                        'Transmitter is not connected, so news message will be sent VIRTUALLY.')
+                    time.sleep(10)
+                NewsMessage.objects.filter(
+                    pk=news_message.pk).update(is_sent=True)
