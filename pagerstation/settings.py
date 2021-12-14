@@ -15,6 +15,7 @@ from pathlib import Path
 
 import dotenv
 
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
 
     'rest_backend',
     'pocsag_sender',
+    'news_picker',
 ]
 
 MIDDLEWARE = [
@@ -102,8 +104,8 @@ DATABASES = {
 # for memcache_lock
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
-        'LOCATION': '127.0.0.1:11211',
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379',
     }
 }
 
@@ -162,5 +164,10 @@ CELERY_BEAT_SCHEDULE = {
     'send-every-5-sec': {
         'task': 'pocsag_sender.tasks.periodic_send',
         'schedule': 5.0,
+    },
+    'pick-data': {
+        'task': 'news_picker.tasks.pick_data',
+        'schedule': crontab(minute=0, hour='*/24'),
+        # 'schedule': crontab(),
     },
 }

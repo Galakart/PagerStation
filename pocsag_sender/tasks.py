@@ -5,8 +5,8 @@ from contextlib import contextmanager
 from django.conf import settings as conf_settings
 from django.core.cache import cache
 from pagerstation.celery import app
-from rest_backend.models import (DirectMessage, Pager, PrivateMessage,
-                                 Transmitter, NewsMessage, NewsChannel)
+from rest_backend.models import (DirectMessage, NewsChannel, NewsMessage,
+                                 Pager, PrivateMessage, Transmitter)
 
 from . import pocsag_encoder
 
@@ -31,7 +31,7 @@ def memcache_lock(lock_id, oid):
 def periodic_send(self):
     with memcache_lock(self.name, self.app.oid) as acquired:
         if acquired:
-            # for i in range(30):
+            # for i in range(15):
             #     print(f'now to {i}')
             #     time.sleep(1)
 
