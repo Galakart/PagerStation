@@ -6,6 +6,8 @@ chmod 600 .env
 
 sudo apt install redis-server
 
+sudo apt install memcached
+
 sudo apt install mariadb-server mariadb-client
 sudo mysql_secure_installation
 current root password - none (нажать enter)
