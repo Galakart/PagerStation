@@ -9,7 +9,6 @@ from pyowm import OWM
 from pyowm.utils.config import get_default_config
 from rest_backend.models import NewsMessage
 
-from news_picker import models
 
 LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
 
