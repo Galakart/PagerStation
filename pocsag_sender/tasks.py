@@ -2,18 +2,14 @@ import os
 import time
 from contextlib import contextmanager
 
-from django.conf import settings as conf_settings
 from django.core.cache import cache
 from pagerstation.celery import app
 from rest_backend.models import (DirectMessage, NewsChannel, NewsMessage,
                                  Pager, PrivateMessage, Transmitter)
 
-from . import pocsag_encoder
+from . import charset_encoder
 
-IS_POCSAG_TRANSMITTER_CONNECTED = conf_settings.IS_POCSAG_TRANSMITTER_CONNECTED
-
-
-LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
+LOCK_EXPIRE = 60 * 10
 
 
 @contextmanager
@@ -28,7 +24,7 @@ def memcache_lock(lock_id, oid):
 
 
 @app.task(bind=True)
-def periodic_send(self):
+def transmit_messages(self):
     with memcache_lock(self.name, self.app.oid) as acquired:
         if acquired:
             # for i in range(15):
@@ -37,9 +33,9 @@ def periodic_send(self):
 
             direct_messages = DirectMessage.objects.filter(is_sent=False)[:10]
             for direct_message in direct_messages:
-                if IS_POCSAG_TRANSMITTER_CONNECTED and os.path.exists('./pocsag'):
+                if os.path.exists('./pocsag'):
                     print('Sending direct POCSAG!')
-                    message_text = pocsag_encoder.encode_message(
+                    message_text = charset_encoder.encode_message(
                         direct_message.message, 2)
                     capcode = f'{direct_message.capcode:07d}'
                     os.system(
@@ -54,7 +50,7 @@ def periodic_send(self):
             private_messages = PrivateMessage.objects.filter(is_sent=False)[
                 :10]
             for private_message in private_messages:
-                if IS_POCSAG_TRANSMITTER_CONNECTED and os.path.exists('./pocsag'):
+                if os.path.exists('./pocsag'):
                     print('Sending private POCSAG!')
                     id_pager = private_message.pager_id
                     capcode = Pager.objects.get(id=id_pager).capcode
@@ -63,7 +59,7 @@ def periodic_send(self):
                     id_transmitter = Pager.objects.get(
                         id=id_pager).transmitter_id
                     freq = Transmitter.objects.get(id=id_transmitter).freq
-                    message_text = pocsag_encoder.encode_message(
+                    message_text = charset_encoder.encode_message(
                         private_message.message, 2)  # TODO передавать правильную кодировку
                     os.system(
                         f'echo "{capcode}:{message_text}" | sudo ./pocsag -f "{freq}" -b {fbit} -t 1')
@@ -76,7 +72,7 @@ def periodic_send(self):
 
             news_messages = NewsMessage.objects.filter(is_sent=False)[:10]
             for news_message in news_messages:
-                if IS_POCSAG_TRANSMITTER_CONNECTED and os.path.exists('./pocsag'):
+                if os.path.exists('./pocsag'):
                     print('Sending news POCSAG!')
                     id_category = news_message.category
                     news_channels = NewsChannel.objects.filter(
@@ -87,7 +83,7 @@ def periodic_send(self):
                         fbit = news_channel.fbit
                         id_transmitter = news_channel.transmitter_id
                         freq = Transmitter.objects.get(id=id_transmitter).freq
-                        message_text = pocsag_encoder.encode_message(
+                        message_text = charset_encoder.encode_message(
                             news_message.message, 2)  # TODO передавать правильную кодировку
                         os.system(
                             f'echo "{capcode}:{message_text}" | sudo ./pocsag -f "{freq}" -b {fbit} -t 1')

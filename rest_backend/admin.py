@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import DirectMessage, Transmitter, Pager, Client, NewsChannel
+from .models import Client, DirectMessage, NewsChannel, Pager, Transmitter
 
 admin.site.register(DirectMessage)
 admin.site.register(Transmitter)

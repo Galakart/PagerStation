@@ -26,17 +26,17 @@ NEWS_CATEGORIES = (
     (8, 'нет'),
 )
 
-MESSAGE_MAX_LENGTH = 1500
+MESSAGE_MAX_LENGTH = 950
 
 
 class DirectMessage(models.Model):
     """Отправка сообщения напрямую, с прямым указанием капкода, частоты, источника"""
     capcode = models.PositiveIntegerField(verbose_name='Капкод', validators=[
-                                          MaxValueValidator(9999999)])
+                                          MinValueValidator(0), MaxValueValidator(9999999)])
     freq = models.PositiveIntegerField(verbose_name='Частота (Гц)', validators=[
                                        MinValueValidator(60000000), MaxValueValidator(999999999)])
     fbit = models.PositiveSmallIntegerField(
-        choices=FBITS, verbose_name='Бит источника')
+        choices=FBITS, verbose_name='Биты источника')
     codepage = models.PositiveSmallIntegerField(
         choices=CODEPAGES, verbose_name='Тип кодировки')
     message = models.TextField(

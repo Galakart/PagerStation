@@ -1,7 +1,6 @@
-
 from rest_framework import serializers
 
-from .models import DirectMessage, PrivateMessage
+from .models import DirectMessage
 
 
 class DirectMessageSerializer(serializers.ModelSerializer):

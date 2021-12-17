@@ -35,8 +35,6 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ['DEBUG']
 
-IS_POCSAG_TRANSMITTER_CONNECTED = os.environ['IS_POCSAG_TRANSMITTER_CONNECTED']
-
 ALLOWED_HOSTS = ['*']
 
 
@@ -154,6 +152,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Celery stuff
+
 CELERY_BROKER_URL = 'redis://localhost:6379'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 CELERY_ACCEPT_CONTENT = ['application/json']
@@ -161,8 +161,8 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
-    'send-every-5-sec': {
-        'task': 'pocsag_sender.tasks.periodic_send',
+    'transmit-messages': {
+        'task': 'pocsag_sender.tasks.transmit_messages',
         'schedule': 5.0,
     },
     'pick-data': {
@@ -171,3 +171,7 @@ CELERY_BEAT_SCHEDULE = {
         # 'schedule': crontab(),
     },
 }
+
+# for news picker
+
+TOKEN_OWM = os.environ['TOKEN_OWM']

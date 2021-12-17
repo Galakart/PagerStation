@@ -13,6 +13,8 @@ from news_picker import models
 
 LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
 
+TOKEN_OWM = conf_settings.TOKEN_OWM
+
 
 @contextmanager
 def memcache_lock(lock_id, oid):
@@ -32,7 +34,7 @@ def pick_data(self):
 
             config_dict = get_default_config()
             config_dict['language'] = 'ru'
-            owm = OWM('70475574ad863c88e52747c2a949f74c', config_dict)
+            owm = OWM(TOKEN_OWM, config_dict)
             mgr = owm.weather_manager()
 
             w = mgr.weather_at_place('Novokuznetsk').weather

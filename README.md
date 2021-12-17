@@ -1,6 +1,8 @@
 
 Pager Station
 
+https://pyowm.readthedocs.io/en/latest/v3/code-recipes.html#weather_forecasts
+
 python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
 chmod 600 .env
 
@@ -35,6 +37,7 @@ sudo nano /etc/systemd/system/pagerstation_gunicorn.service
 [Unit]
 Description=gunicorn daemon
 After=network.target
+PartOf=pagerstation.service
 
 [Service]
 User=root
@@ -78,6 +81,7 @@ sudo nano /etc/systemd/system/pagerstation_celery_worker.service
 [Unit]
 Description= PagerStation Celery Worker Service
 After=network.target
+PartOf=pagerstation.service
 
 [Service]
 Type=forking
@@ -105,6 +109,7 @@ sudo nano /etc/systemd/system/pagerstation_celery_beat.service
 [Unit]
 Description=PagerStation Celery Beat Service
 After=network.target
+PartOf=pagerstation.service
 
 [Service]
 Type=simple
@@ -121,15 +126,33 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 
+
+
+
+sudo nano /etc/systemd/system/pagerstation.service
+
+[Unit]
+Description=PagerStation Group Service
+Wants=pagerstation_gunicorn.service
+Wants=pagerstation_celery_worker.service
+Wants=pagerstation_celery_beat.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/echo "Starting PagerStation instances"
+RemainAfterExit=yes
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
 sudo mkdir /var/log/celery
 sudo chown pi:pi /var/log/celery
 sudo chmod 0755 /var/log/celery
 
 sudo systemctl daemon-reload
-sudo systemctl enable pagerstation_gunicorn
-sudo systemctl enable pagerstation_celery_worker
-sudo systemctl enable pagerstation_celery_beat
-sudo service pagerstation_gunicorn start
-sudo service pagerstation_celery_worker start
-sudo service pagerstation_celery_beat start
-
+sudo systemctl enable pagerstation
+sudo service pagerstation start или sudo systemctl start pagerstation
