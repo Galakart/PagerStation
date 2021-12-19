@@ -1,42 +1,8 @@
 
-# слева русские, справа латинские
-dict_symbols_navigator = {
-    'А': 'A',
-    'Б': 'a',
-    'В': 'B',
-    'Г': 'b',
-    'Д': 'd',
-    'Е': 'E',
-    'Ё': 'e',
-    'Ж': 'f',
-    'З': 'g',
-    'И': 'h',
-    'Й': 'i',
-    'К': 'K',
-    'Л': 'j',
-    'М': 'M',
-    'Н': 'H',
-    'О': 'O',
-    'П': 'k',
-    'Р': 'P',
-    'С': 'C',
-    'Т': 'T',
-    'У': 'l',
-    'Ф': 'm',
-    'Х': 'X',
-    'Ц': 'n',
-    'Ч': 'o',
-    'Ш': 'p',
-    'Щ': 'q',
-    'Ъ': 'r',
-    'Ы': 's',
-    'Ь': 't',
-    'Э': 'u',
-    'Ю': 'v',
-    'Я': 'w',
-}
+#TODO фильтрация неподдерживаемых символов, lat-кодировка, транслит в каждой кодировке
 
-dict_symbols_motorola = {
+# слева русские, справа латинские
+dict_symbols_cyr = {
     'А': 'a',
     'Б': 'b',
     'В': 'w',
@@ -105,15 +71,58 @@ dict_symbols_motorola = {
     'я': 'Q',
 }
 
+dict_symbols_linguist = {
+    'А': 'A',
+    'Б': 'a',
+    'В': 'B',
+    'Г': 'b',
+    'Д': 'd',
+    'Е': 'E',
+    'Ё': 'e',
+    'Ж': 'f',
+    'З': 'g',
+    'И': 'h',
+    'Й': 'i',
+    'К': 'K',
+    'Л': 'j',
+    'М': 'M',
+    'Н': 'H',
+    'О': 'O',
+    'П': 'k',
+    'Р': 'P',
+    'С': 'C',
+    'Т': 'T',
+    'У': 'l',
+    'Ф': 'm',
+    'Х': 'X',
+    'Ц': 'n',
+    'Ч': 'o',
+    'Ш': 'p',
+    'Щ': 'q',
+    'Ъ': 'r',
+    'Ы': 's',
+    'Ь': 't',
+    'Э': 'u',
+    'Ю': 'v',
+    'Я': 'w',
+}
 
-def encode_message(message_text, pager_type):
-    result = ''
-    if pager_type == 1:
-        result = message_text.upper()
-        for cyr_symbol, lat_symbol in dict_symbols_navigator.items():
-            result = result.replace(cyr_symbol, lat_symbol)
-    elif pager_type == 2:
-        result = message_text
-        for cyr_symbol, lat_symbol in dict_symbols_motorola.items():
-            result = result.replace(cyr_symbol, lat_symbol)
-    return result
+
+
+class CharsetEncoder():
+    def __init__(self):
+        pass
+
+    def encode_message(self, message, codepage):
+        result = ''
+        if codepage == 1:
+            pass
+        elif codepage == 2:
+            result = message
+            for cyr_symbol, lat_symbol in dict_symbols_cyr.items():
+                result = result.replace(cyr_symbol, lat_symbol)
+        elif codepage == 3:
+            result = message.upper()
+            for cyr_symbol, lat_symbol in dict_symbols_linguist.items():
+                result = result.replace(cyr_symbol, lat_symbol)
+        return result
