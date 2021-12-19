@@ -1,4 +1,3 @@
-import os
 import time
 from contextlib import contextmanager
 
@@ -10,9 +9,10 @@ from pyowm.utils.config import get_default_config
 from rest_backend.models import NewsMessage
 
 
-LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
+LOCK_EXPIRE = 60 * 10
 
 TOKEN_OWM = conf_settings.TOKEN_OWM
+WEATHER_CITY = conf_settings.WEATHER_CITY
 
 
 @contextmanager
@@ -36,7 +36,7 @@ def pick_data(self):
             owm = OWM(TOKEN_OWM, config_dict)
             mgr = owm.weather_manager()
 
-            w = mgr.weather_at_place('Novokuznetsk').weather
+            w = mgr.weather_at_place(WEATHER_CITY).weather
 
             temp = round(w.temperature('celsius')['temp'])
             status = w.detailed_status
@@ -48,7 +48,7 @@ def pick_data(self):
 
             weather_mes = f'Погода *** Сейчас: {temp}, {status}, влажность {hum}%, восход: {sunrise}, закат: {sunset}'
 
-            # three_h_forecast = mgr.forecast_at_place('Novokuznetsk', '3h').forecast
+            # three_h_forecast = mgr.forecast_at_place(WEATHER_CITY, '3h').forecast
             # print(len(three_h_forecast))
             # for weather in three_h_forecast:
             #     print(weather.reference_time)

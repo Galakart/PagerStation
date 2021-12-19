@@ -175,3 +175,4 @@ CELERY_BEAT_SCHEDULE = {
 # for news picker
 
 TOKEN_OWM = os.environ['TOKEN_OWM']
+WEATHER_CITY = os.environ['WEATHER_CITY']
