@@ -19,13 +19,15 @@ def transmit_messages():
         DirectMessage.objects.filter(
             pk=direct_message.pk).update(is_sent=True)
 
-    private_messages = PrivateMessage.objects.filter(is_sent=False)[:BATCH_LIMIT]
+    private_messages = PrivateMessage.objects.filter(is_sent=False)[
+        :BATCH_LIMIT]
     for private_message in private_messages:
         id_pager = private_message.pager_id
         capcode = Pager.objects.get(id=id_pager).capcode
         fbit = Pager.objects.get(id=id_pager).fbit
         codepage = Pager.objects.get(id=id_pager).codepage
-        freq = Transmitter.objects.get(id=private_message.transmitter_id).freq
+        freq = Transmitter.objects.get(
+            id=Pager.objects.get(id=id_pager).transmitter_id).freq
         message_to_air(capcode, fbit, codepage,
                        private_message.message, freq)
         PrivateMessage.objects.filter(
@@ -50,7 +52,7 @@ def message_to_air(capcode, fbit, codepage, message, freq):
     capcode = f'{capcode:07d}'
     message_text = charset_encoder.encode_message(message, codepage)
     if os.path.exists('./pocsag'):
-        print('Sending news POCSAG!')
+        print('Sending new POCSAG!')
         # TODO экранировать переменные
         os.system(
             f'echo "{capcode}:{message_text}" | sudo ./pocsag -f "{freq}" -b {fbit} -t 1')

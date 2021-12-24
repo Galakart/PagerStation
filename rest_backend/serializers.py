@@ -6,7 +6,7 @@ from .models import MESSAGE_MAX_LENGTH, DirectMessage
 class DirectMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = DirectMessage
-        fields = ('capcode', 'freq', 'fbit', 'message')
+        fields = ('capcode', 'freq', 'fbit', 'codepage', 'message')
 
 
 class MessageBySubscriberNumberSerializer(serializers.Serializer):

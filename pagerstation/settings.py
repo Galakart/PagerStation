@@ -167,12 +167,12 @@ CELERY_BEAT_SCHEDULE = {
     },
     'pick-data': {
         'task': 'news_picker.tasks.pick_data',
-        'schedule': crontab(minute=0, hour='*/24'),
-        # 'schedule': crontab(),
+        'schedule': crontab(minute=0, hour='*/1'),
+        # 'schedule': crontab(), # every one minute
     },
 }
 
-# for news picker
+# for the news picker
 
 TOKEN_OWM = os.environ['TOKEN_OWM']
 WEATHER_CITY = os.environ['WEATHER_CITY']

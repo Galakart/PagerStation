@@ -1,3 +1,4 @@
+import datetime
 import time
 from contextlib import contextmanager
 
@@ -7,7 +8,6 @@ from pagerstation.celery import app
 from pyowm import OWM
 from pyowm.utils.config import get_default_config
 from rest_backend.models import NewsMessage
-
 
 LOCK_EXPIRE = 60 * 10
 
@@ -30,28 +30,29 @@ def memcache_lock(lock_id, oid):
 def pick_data(self):
     with memcache_lock(self.name, self.app.oid) as acquired:
         if acquired:
+            today_date = datetime.datetime.now()
+            if today_date.hour in (7, 14, 21) and today_date.minute == 0:
+                config_dict = get_default_config()
+                config_dict['language'] = 'ru'
+                owm = OWM(TOKEN_OWM, config_dict)
+                mgr = owm.weather_manager()
 
-            config_dict = get_default_config()
-            config_dict['language'] = 'ru'
-            owm = OWM(TOKEN_OWM, config_dict)
-            mgr = owm.weather_manager()
+                w = mgr.weather_at_place(WEATHER_CITY).weather
 
-            w = mgr.weather_at_place(WEATHER_CITY).weather
+                temp = round(w.temperature('celsius')['temp'])
+                status = w.detailed_status
+                hum = w.humidity
+                sunrise = time.strftime("%H:%M", time.gmtime(
+                    w.sunrise_time(timeformat='unix')))
+                sunset = time.strftime("%H:%M", time.gmtime(
+                    w.sunset_time(timeformat='unix')))
 
-            temp = round(w.temperature('celsius')['temp'])
-            status = w.detailed_status
-            hum = w.humidity
-            sunrise = time.strftime("%H:%M", time.gmtime(
-                w.sunrise_time(timeformat='unix')))
-            sunset = time.strftime("%H:%M", time.gmtime(
-                w.sunset_time(timeformat='unix')))
+                weather_mes = f'Погода *** Сейчас: {temp}, {status}, влажность {hum}%, восход: {sunrise}, закат: {sunset}'
 
-            weather_mes = f'Погода *** Сейчас: {temp}, {status}, влажность {hum}%, восход: {sunrise}, закат: {sunset}'
+                # three_h_forecast = mgr.forecast_at_place(WEATHER_CITY, '3h').forecast
+                # print(len(three_h_forecast))
+                # for weather in three_h_forecast:
+                #     print(weather.reference_time)
+                #     print(weather.temperature('celsius'))
 
-            # three_h_forecast = mgr.forecast_at_place(WEATHER_CITY, '3h').forecast
-            # print(len(three_h_forecast))
-            # for weather in three_h_forecast:
-            #     print(weather.reference_time)
-            #     print(weather.temperature('celsius'))
-
-            NewsMessage(category=3, message=weather_mes).save()
+                NewsMessage(category=3, message=weather_mes).save()
