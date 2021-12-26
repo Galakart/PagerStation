@@ -102,6 +102,8 @@ DB_NAME, DB_HOST, DB_USER, DB_PASS - параметры доступа к БД
 TOKEN_OWM - токен OpenWeatherMap (TODO как получить)
 WEATHER_CITY - город для прогноза погоды (TODO формат)
 
+в настройках часовой пояс и язык
+
 установим зависимости
 pip install -r requirements.txt
 
