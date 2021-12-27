@@ -9,13 +9,12 @@ BATCH_LIMIT = 10
 
 charset_encoder = CharsetEncoder()
 
-
+#TODO проверка на существование объектов
 def transmit_messages():
     direct_messages = DirectMessage.objects.filter(is_sent=False)[:BATCH_LIMIT]
     for direct_message in direct_messages:
-        freq = Transmitter.objects.get(id=direct_message.transmitter_id).freq
         message_to_air(direct_message.capcode, direct_message.fbit,
-                       direct_message.codepage, direct_message.message, freq)
+                       direct_message.codepage, direct_message.message, direct_message.freq)
         DirectMessage.objects.filter(
             pk=direct_message.pk).update(is_sent=True)
 
