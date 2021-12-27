@@ -17,6 +17,7 @@ import dotenv
 
 from celery.schedules import crontab
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -33,7 +34,7 @@ if os.path.isfile(dotenv_file):
 SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ['DEBUG']
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -153,6 +154,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Celery stuff
+# https://docs.celeryproject.org/en/stable/userguide/periodic-tasks.html
 
 CELERY_BROKER_URL = 'redis://localhost:6379'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379'
@@ -163,16 +165,15 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
     'transmit-messages': {
         'task': 'pocsag_sender.tasks.transmit_messages',
-        'schedule': 5.0,
+        'schedule': 5.0, # every 5 seconds
     },
     'pick-data': {
         'task': 'news_picker.tasks.pick_data',
-        'schedule': crontab(minute=0, hour='*/1'),
-        # 'schedule': crontab(), # every one minute
+        'schedule': crontab(), # every one minute
     },
 }
 
 # for the news picker
 
 TOKEN_OWM = os.environ['TOKEN_OWM']
-WEATHER_CITY = os.environ['WEATHER_CITY']
+WEATHER_CITY = 'Novokuznetsk'

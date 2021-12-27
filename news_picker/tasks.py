@@ -32,7 +32,7 @@ def pick_data(self):
     with memcache_lock(self.name, self.app.oid) as acquired:
         if acquired:
             today_date = datetime.datetime.now()
-            if today_date.hour in (7, 14, 21):
+            if today_date.hour in (7, 14, 21) and today_date.minute == 0:
                 config_dict = get_default_config()
                 config_dict['language'] = 'ru'
                 owm = OWM(TOKEN_OWM, config_dict)
