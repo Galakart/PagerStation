@@ -53,7 +53,6 @@ def message_to_air(capcode, fbit, codepage, message, freq):
     message_text = charset_encoder.encode_message(message, codepage)
     if os.path.exists('./pocsag'):
         print('Sending new POCSAG!')
-        # TODO экранировать переменные
         os.system(
             f'echo "{capcode}:{message_text}" | sudo ./pocsag -f "{freq}" -b {fbit} -t 1')
     else:
