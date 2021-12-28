@@ -18,8 +18,7 @@ def transmit_messages():
         DirectMessage.objects.filter(
             pk=direct_message.pk).update(is_sent=True)
 
-    private_messages = PrivateMessage.objects.filter(is_sent=False)[
-        :BATCH_LIMIT]
+    private_messages = PrivateMessage.objects.filter(is_sent=False)[:BATCH_LIMIT]
     for private_message in private_messages:
         id_pager = private_message.pager_id
         capcode = Pager.objects.get(id=id_pager).capcode

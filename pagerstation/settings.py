@@ -100,7 +100,7 @@ DATABASES = {
     }
 }
 
-# for memcache_lock
+# For the memcache_lock
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
@@ -173,7 +173,7 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-# for the news picker
+# For the news picker
 
 TOKEN_OWM = os.environ['TOKEN_OWM']
 WEATHER_CITY = 'Novokuznetsk'

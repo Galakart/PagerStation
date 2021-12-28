@@ -104,6 +104,10 @@ WEATHER_CITY - город для прогноза погоды (TODO форма�
 
 в настройках часовой пояс и язык
 
+cp celery.example.conf celery.conf
+поменять параметр CELERY_BIN
+/home/pi/services/pagerstation/venv/bin/celery
+
 установим зависимости
 pip install -r requirements.txt
 
