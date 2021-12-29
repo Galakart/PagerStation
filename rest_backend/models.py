@@ -114,7 +114,7 @@ class Pager(models.Model):
     )
     transmitter = models.ForeignKey(
         Transmitter,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         verbose_name='Трансмиттер'
     )
 
@@ -146,7 +146,7 @@ class PrivateMessage(models.Model):
     """Приватное сообщение на пейджер"""
     pager = models.ForeignKey(
         Pager,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         verbose_name='Пейджер-получатель',
     )
     message = models.TextField(
