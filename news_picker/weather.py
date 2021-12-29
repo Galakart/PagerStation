@@ -12,13 +12,13 @@ TOKEN_OWM = conf_settings.TOKEN_OWM
 WEATHER_CITY = conf_settings.WEATHER_CITY
 NEWS_CATEGORY = 3
 
-max_last_create_time = timezone.now()-timezone.timedelta(hours=7)
 config_dict = get_default_config()
 config_dict['language'] = 'ru'
 
 
 def make_forecast():
     today_date = datetime.datetime.now()
+    max_last_create_time = timezone.now()-timezone.timedelta(hours=7)
     actual_mes_count = NewsMessage.objects.filter(
         category=NEWS_CATEGORY, date_create__gt=max_last_create_time).count()
 
