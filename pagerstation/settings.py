@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'rest_backend',
     'pocsag_sender',
     'news_picker',
+    'telegram_bot',
 ]
 
 MIDDLEWARE = [
@@ -177,3 +178,5 @@ CELERY_BEAT_SCHEDULE = {
 
 TOKEN_OWM = os.environ['TOKEN_OWM']
 WEATHER_CITY = 'Novokuznetsk'
+
+TOKEN_TELEGRAM = os.environ['TOKEN_TELEGRAM']

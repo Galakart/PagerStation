@@ -269,7 +269,7 @@ sudo nginx -t
 sudo systemctl restart nginx
 ```
 
-**Создадим конфиг для gunicorn:**
+**Создадим конфиг для Gunicorn:**
 ```bash
 sudo nano /etc/systemd/system/pagerstation_gunicorn.service
 ```
@@ -353,6 +353,30 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
+**Конфиг для Telegram бота:**
+```bash
+sudo nano /etc/systemd/system/pagerstation_telegram.service
+```
+
+Вставить текст:
+```bash
+[Unit]
+Description=PagerStation Telegram Bot Service
+After=network.target
+PartOf=pagerstation.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/services/pagerstation
+ExecStart=/home/pi/services/pagerstation/venv/bin/python /home/pi/services/pagerstation/telegram_bot/bot.py
+KillMode=process
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
 **И один конфиг, чтобы править всеми:**
 ```bash
 sudo nano /etc/systemd/system/pagerstation.service
@@ -365,6 +389,7 @@ Description=PagerStation Group Service
 Wants=pagerstation_gunicorn.service
 Wants=pagerstation_celery_worker.service
 Wants=pagerstation_celery_beat.service
+Wants=pagerstation_telegram.service
 
 [Service]
 Type=oneshot
@@ -452,7 +477,7 @@ sudo service pagerstation start
 
 Как закрепить провода в отверстиях - тут уж как фантазии хватит. Главное чтобы при самой прошивке контакт не нарушался, пейджеры этого не любят. Лично я делал так - приподнимал из корпуса основную плату с экраном, засовывал в отверстия корпуса проводки, затем опускал на место плату и она прижимала собой провода к контактам. Для надёжности можно прилепить их ещё изолентой к корпусу, чтобы случайно не вырвать. Главное чтоб контакты между собой внутри не замкнулись!
 
-Вставляем в пейджер батарейку (можно его так и оставить полуразобранным, хоть с отсоединённым передатчиком), и подключаем переходник к компу. Идём в Диспетчер устройств и запоминаем, на какой COM-порт у нас установился переходник (например, COM4). Если новых портов (кроме COM1-2) не появилось, то нужно установить драйвера на переходник.
+Вставляем в пейджер батарейку (можно его так и оставить полуразобранным, хоть с отсоединённым приёмником), и подключаем переходник к компу. Идём в Диспетчер устройств и запоминаем, на какой COM-порт у нас установился переходник (например, COM4). Если новых портов (кроме COM1-2) не появилось, то нужно установить драйвера на переходник.
 
 Архив с ПО для прошивки разархивируем в отдельную папку, нечто вроде `D:\DOS\AdvisorTools`  
 Проверяем чтобы внутри папки AdvisorTools лежал файл ADVCNFGF.ILE - он определяет что ПО установлено нормально.
