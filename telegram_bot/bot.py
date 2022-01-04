@@ -1,10 +1,21 @@
-import telebot
-from django.conf import settings as conf_settings
-from telebot import types
+import os
 import sys
+import time
+from pathlib import Path
 
-if conf_settings.TOKEN_TELEGRAM:
-    BOT = telebot.TeleBot(conf_settings.TOKEN_TELEGRAM)
+import dotenv
+import telebot
+from telebot import types
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+dotenv_file = os.path.join(BASE_DIR, ".env")
+if os.path.isfile(dotenv_file):
+    dotenv.load_dotenv(dotenv_file)
+
+TOKEN_TELEGRAM = os.environ['TOKEN_TELEGRAM']
+
+if TOKEN_TELEGRAM:
+    BOT = telebot.TeleBot(TOKEN_TELEGRAM)
 else:
     BOT = None
 
@@ -35,9 +46,13 @@ def mainmenu_choice(message):
         BOT.send_message(message.chat.id, 'Неизвестная команда')
         mainmenu(message)
 
+
 if __name__ == '__main__':
-    print('bot started!!!')
-    try:
-        BOT.infinity_polling()
-    except Exception as ex:
-        sys.exit()
+    if TOKEN_TELEGRAM:
+        try:
+            BOT.infinity_polling()
+        except Exception as ex:
+            sys.exit()
+    else:
+        while True:
+            time.sleep(1)
