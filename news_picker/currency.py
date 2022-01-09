@@ -24,7 +24,7 @@ def make_currency():
                 cur_btc = requests.get(
                     'https://api.coingate.com/v2/rates/merchant/BTC/RUB').text
 
-                currency_mes = f'Курс валют. Доллар: {cur_usd} руб. *** Евро: {cur_eur} руб. *** Биткоин: {cur_btc} руб.'
+                currency_mes = f'Курс валют. Доллар: {cur_usd} руб. Евро: {cur_eur} руб. Биткоин: {cur_btc} руб.'
             else:
                 currency_mes = 'Нет данных о курсах валют'
 
