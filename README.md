@@ -197,6 +197,7 @@ nano .env
 - SECRET_KEY - сюда вставляем только что сгенерированый секретный ключ;
 - DB_NAME, DB_HOST, DB_USER, DB_PASS - параметры доступа к БД;
 - TOKEN_OWM - токен OpenWeatherMap (завести у них на сайте учётку с бесплатным тарифом, и создать токен в личном кабинете);
+- TOKEN_TELEGRAM - токен Telegram бота;
 
 Открываем файл основных настроек:
 ```bash
@@ -671,7 +672,7 @@ curl -X POST http://192.168.1.123/api/privatemessages/ -H 'Content-Type: applica
 
 ## Использованные источники
 
-##### Статьи и видео
+#### Статьи и видео
 - видео на канале **Hot Pixel:**  
 https://www.youtube.com/watch?v=ukmvlHdsdfc
 - две замечательные статьи от **SinuX:**  
@@ -680,12 +681,14 @@ https://mysku.ru/blog/diy/88811.html
 - описание принципов формирования капкодов и их применения в Motorola Advisor, на **cxem.net**:  
 https://cxem.net/telefon/2-28.php
 
-##### Сторонние программы и сервисы
+#### Сторонние программы и сервисы
 - разумеется, программа RPITX от автора F5OEO, при помощи которой и идёт вся отправка в эфир:  
 https://github.com/F5OEO/rpitx
 - сервис OpenWeatherMap, и оболочка PyOWM - для вытягивания прогноза погоды:  
 https://openweathermap.org/  
 https://pyowm.readthedocs.io/en/latest/
+- сервис CoinGate - курсы валют:  
+https://developer.coingate.com/docs
 
 Поддержать автора  
 BTC: bc1q5aptd289qsvrtsf9t2z42udda5t70e7hc39sc2
