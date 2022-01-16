@@ -2,6 +2,7 @@
 test.py
 pocsag
 celery.conf
+pagerstation/settings_local.py
 
 # Created by https://www.toptal.com/developers/gitignore/api/django,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=django,visualstudiocode
