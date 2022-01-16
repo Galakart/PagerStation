@@ -3,16 +3,16 @@ import sys
 import time
 from pathlib import Path
 
-import dotenv
+import environ
 import telebot
 from telebot import types
+import dbops as db
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-dotenv_file = os.path.join(BASE_DIR, ".env")
-if os.path.isfile(dotenv_file):
-    dotenv.load_dotenv(dotenv_file)
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-TOKEN_TELEGRAM = os.environ['TOKEN_TELEGRAM']
+TOKEN_TELEGRAM = env('TOKEN_TELEGRAM')
 
 if TOKEN_TELEGRAM:
     BOT = telebot.TeleBot(TOKEN_TELEGRAM)
@@ -30,7 +30,7 @@ def mainmenu(message):
     """Главное меню"""
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard_list = []
-    keyboard_list.append('Отправить')
+    keyboard_list.append('Ping private')
     keyboard.add(*keyboard_list, row_width=1)
     BOT.send_message(message.chat.id, 'Вы в главном меню',
                      reply_markup=keyboard)
@@ -40,8 +40,9 @@ def mainmenu(message):
 def mainmenu_choice(message):
     """Выбор пункта главного меню"""
     choice = message.text
-    if choice == 'Отправить':
-        BOT.send_message(message.chat.id, 'Выбран пункт меню')
+    if choice == 'Ping private':
+        if db.send_ping_private():
+            BOT.send_message(message.chat.id, 'Отладочное личное сообщение отправлено')
     else:
         BOT.send_message(message.chat.id, 'Неизвестная команда')
         mainmenu(message)

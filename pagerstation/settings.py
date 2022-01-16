@@ -177,7 +177,6 @@ CELERY_BEAT_SCHEDULE = {
 TOKEN_OWM = env('TOKEN_OWM')
 WEATHER_CITY = 'Moscow'
 
-TOKEN_TELEGRAM = env('TOKEN_TELEGRAM')
 
 try:
     from .settings_local import *
