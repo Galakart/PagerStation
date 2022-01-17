@@ -49,11 +49,13 @@ def mainmenu_choice(message):
 
 
 if __name__ == '__main__':
-    if TOKEN_TELEGRAM:
-        try:
-            BOT.infinity_polling()
-        except Exception as ex:
-            sys.exit()
-    else:
-        while True:
-            time.sleep(1)
+    # if TOKEN_TELEGRAM:
+    #     try:
+    #         BOT.infinity_polling()
+    #     except Exception as ex:
+    #         sys.exit()
+    # else:
+    #     while True:
+    #         time.sleep(1)
+    while True:
+        time.sleep(1)
