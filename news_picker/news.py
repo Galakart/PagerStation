@@ -22,8 +22,8 @@ def make_news():
                 if item[:5] != 'news/':
                     continue
                 cur_news = (news_all['documents'][item]['title']).replace(
-                    '«', '\"').replace('»', '\"').replace('\u00A0', ' ')
-                if len(news_mes) + len(cur_news) < 950:
+                    '«', '\"').replace('»', '\"').replace('„', '\"').replace('“', '\"').replace('\u00A0', ' ')
+                if len(news_mes) + len(cur_news) + 5 <= 900: #TODO change 900 to MESSAGE_MAX_LENGTH and refresh migrates
                     news_mes = f'{news_mes} *** {cur_news}'
 
             NewsMessage(category=NEWS_CATEGORY, message=news_mes).save()
