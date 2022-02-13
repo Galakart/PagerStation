@@ -2,7 +2,7 @@ import datetime
 
 import requests
 from django.utils import timezone
-from rest_backend.models import NewsMessage
+from rest_backend.models import MESSAGE_MAX_LENGTH, NewsMessage
 
 NEWS_CATEGORY = 2
 
@@ -23,7 +23,7 @@ def make_news():
                     continue
                 cur_news = (news_all['documents'][item]['title']).replace(
                     '«', '\"').replace('»', '\"').replace('„', '\"').replace('“', '\"').replace('\u00A0', ' ')
-                if len(news_mes) + len(cur_news) + 5 <= 900: #TODO change 900 to MESSAGE_MAX_LENGTH and refresh migrates
+                if len(news_mes) + len(cur_news) + 5 <= MESSAGE_MAX_LENGTH:
                     news_mes = f'{news_mes} *** {cur_news}'
 
             NewsMessage(category=NEWS_CATEGORY, message=news_mes).save()

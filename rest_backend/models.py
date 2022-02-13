@@ -2,7 +2,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 
-MESSAGE_MAX_LENGTH = 950
+MESSAGE_MAX_LENGTH = 900
 CAPCODE_MIN_VALUE = 0
 CAPCODE_MAX_VALUE = 9999999
 FREQ_MIN_VALUE = 120000000
