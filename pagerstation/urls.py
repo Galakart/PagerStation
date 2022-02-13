@@ -19,4 +19,5 @@ from django.urls import include, path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('rest_backend.urls')),
+    path('retropanel/', include('frontend_retro.urls')),
 ]

@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'pocsag_sender',
     'news_picker',
     'telegram_bot',
+    'frontend_retro',
 ]
 
 MIDDLEWARE = [
