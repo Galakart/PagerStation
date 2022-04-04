@@ -22,7 +22,7 @@ def make_news():
                 if item[:5] != 'news/':
                     continue
                 cur_news = (news_all['documents'][item]['title']).replace(
-                    '«', '\"').replace('»', '\"').replace('„', '\"').replace('“', '\"').replace('\u00A0', ' ')
+                    '«', '\"').replace('»', '\"').replace('„', '\"').replace('“', '\"').replace('—', '-').replace('\u00A0', ' ')
                 if len(news_mes) + len(cur_news) + 5 <= MESSAGE_MAX_LENGTH:
                     news_mes = f'{news_mes} *** {cur_news}'
 

@@ -22,13 +22,16 @@ def make_forecast():
     actual_mes_count = NewsMessage.objects.filter(
         category=NEWS_CATEGORY, date_create__gt=max_last_create_time).count()
 
-    if (today_date.hour in (7, 14, 21) and today_date.minute == 0) or actual_mes_count == 0: #TODO поправить, лишняя отправка посреди ночи из-за истечения максимального периода
+    # TODO поправить, лишняя отправка посреди ночи из-за истечения максимального периода
+    if (today_date.hour in (7, 14, 21) and today_date.minute == 0) or actual_mes_count == 0:
         try:
             owm = OWM(TOKEN_OWM, config_dict)
             mgr = owm.weather_manager()
 
             owm_weather = mgr.weather_at_place(WEATHER_CITY).weather
             temp = round(owm_weather.temperature('celsius')['temp'])
+            if temp > 0:
+                temp = f'+{temp}'
             status = owm_weather.detailed_status
             hum = owm_weather.humidity
             sunrise = time.strftime("%H:%M", time.localtime(
@@ -40,6 +43,8 @@ def make_forecast():
                 WEATHER_CITY, '3h').get_weather_at(timestamps.tomorrow())
             temp_tomorrow = round(
                 owm_forecast_tomorrow.temperature('celsius')['temp'])
+            if temp_tomorrow > 0:
+                temp_tomorrow = f'+{temp_tomorrow}'
             status_tomorrow = owm_forecast_tomorrow.detailed_status
 
             weather_mes = f'Погода. Сейчас: {temp}, {status}, влажность {hum}%, восход: {sunrise}, закат: {sunset} *** Завтра: {temp_tomorrow}, {status_tomorrow}'
