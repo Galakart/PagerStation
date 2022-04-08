@@ -197,7 +197,6 @@ nano .env
 - SECRET_KEY - сюда вставляем только что сгенерированый секретный ключ;
 - DB_NAME, DB_HOST, DB_USER, DB_PASS - параметры доступа к БД;
 - TOKEN_OWM - токен OpenWeatherMap (завести у них на сайте учётку с бесплатным тарифом, и создать токен в личном кабинете);
-- TOKEN_TELEGRAM - токен Telegram бота;
 
 Скопируем файл основных локальных настроек:
 ```bash
@@ -355,30 +354,6 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
-**Конфиг для Telegram бота:**
-```bash
-sudo nano /etc/systemd/system/pagerstation_telegram.service
-```
-
-Вставить текст:
-```bash
-[Unit]
-Description=PagerStation Telegram Bot Service
-After=network.target
-PartOf=pagerstation.service
-
-[Service]
-Type=simple
-WorkingDirectory=/home/pi/services/pagerstation
-ExecStart=/home/pi/services/pagerstation/venv/bin/python /home/pi/services/pagerstation/telegram_bot/bot.py
-KillMode=process
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
 **И один конфиг, чтобы править всеми:**
 ```bash
 sudo nano /etc/systemd/system/pagerstation.service
@@ -391,7 +366,6 @@ Description=PagerStation Group Service
 Wants=pagerstation_gunicorn.service
 Wants=pagerstation_celery_worker.service
 Wants=pagerstation_celery_beat.service
-Wants=pagerstation_telegram.service
 
 [Service]
 Type=oneshot

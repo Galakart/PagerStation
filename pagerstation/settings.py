@@ -51,7 +51,6 @@ INSTALLED_APPS = [
     'rest_backend',
     'pocsag_sender',
     'news_picker',
-    'telegram_bot',
     'frontend_retro',
 ]
 
