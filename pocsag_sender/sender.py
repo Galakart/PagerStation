@@ -9,16 +9,19 @@ BATCH_LIMIT = 10
 
 charset_encoder = CharsetEncoder()
 
-#TODO проверка на существование объектов
+# TODO проверка на существование объектов
+
+
 def transmit_messages():
     direct_messages = DirectMessage.objects.filter(is_sent=False)[:BATCH_LIMIT]
     for direct_message in direct_messages:
         message_to_air(direct_message.capcode, direct_message.fbit,
-                       direct_message.codepage, direct_message.message, direct_message.freq)
+                       direct_message.codepage, direct_message.message, direct_message.freq, direct_message.get_baudrate_display())
         DirectMessage.objects.filter(
             pk=direct_message.pk).update(is_sent=True)
 
-    private_messages = PrivateMessage.objects.filter(is_sent=False)[:BATCH_LIMIT]
+    private_messages = PrivateMessage.objects.filter(is_sent=False)[
+        :BATCH_LIMIT]
     for private_message in private_messages:
         id_pager = private_message.pager_id
         capcode = Pager.objects.get(id=id_pager).capcode
@@ -26,8 +29,10 @@ def transmit_messages():
         codepage = Pager.objects.get(id=id_pager).codepage
         freq = Transmitter.objects.get(
             id=Pager.objects.get(id=id_pager).transmitter_id).freq
+        baudrate = Transmitter.objects.get(
+            id=Pager.objects.get(id=id_pager).transmitter_id).get_baudrate_display()
         message_to_air(capcode, fbit, codepage,
-                       private_message.message, freq)
+                       private_message.message, freq, baudrate)
         PrivateMessage.objects.filter(
             pk=private_message.pk).update(is_sent=True)
 
@@ -41,17 +46,19 @@ def transmit_messages():
             fbit = news_channel.fbit
             codepage = news_channel.codepage
             freq = Transmitter.objects.get(id=news_channel.transmitter_id).freq
+            baudrate = Transmitter.objects.get(
+                id=news_channel.transmitter_id).get_baudrate_display()
             message_to_air(capcode, fbit, codepage,
-                           news_message.message, freq)
+                           news_message.message, freq, baudrate)
         NewsMessage.objects.filter(pk=news_message.pk).update(is_sent=True)
 
 
-def message_to_air(capcode, fbit, codepage, message, freq):
+def message_to_air(capcode, fbit, codepage, message, freq, baudrate):
     capcode = f'{capcode:07d}'
     message_text = charset_encoder.encode_message(message, codepage)
     if os.path.exists('./pocsag'):
         print('Sending new POCSAG!')
         os.system(
-            f'echo "{capcode}:{message_text}" | sudo ./pocsag -f "{freq}" -b {fbit} -t 1')
+            f'echo "{capcode}:{message_text}" | sudo ./pocsag -f "{freq}" -b {fbit} -r {baudrate} -t 1')
     else:
         print('Transmitter is not connected, so message will be sent VIRTUALLY.')

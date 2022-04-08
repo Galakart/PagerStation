@@ -13,30 +13,27 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import os
 from pathlib import Path
 
-import dotenv
+import environ
 
 from celery.schedules import crontab
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-dotenv_file = os.path.join(BASE_DIR, ".env")
-if os.path.isfile(dotenv_file):
-    dotenv.load_dotenv(dotenv_file)
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['SECRET_KEY']
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -54,6 +51,8 @@ INSTALLED_APPS = [
     'rest_backend',
     'pocsag_sender',
     'news_picker',
+    'telegram_bot',
+    'frontend_retro',
 ]
 
 MIDDLEWARE = [
@@ -93,10 +92,10 @@ WSGI_APPLICATION = 'pagerstation.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ['DB_NAME'],
-        'HOST': os.environ['DB_HOST'],
-        'USER': os.environ['DB_USER'],
-        'PASSWORD': os.environ['DB_PASS'],
+        'NAME': env('DB_NAME'),
+        'HOST': env('DB_HOST'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASS'),
     }
 }
 
@@ -131,9 +130,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUAGE_CODE = 'ru-ru'
+LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Asia/Novokuznetsk'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
@@ -153,6 +152,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
 # Celery stuff
 # https://docs.celeryproject.org/en/stable/userguide/periodic-tasks.html
 
@@ -161,19 +161,26 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
     'transmit-messages': {
         'task': 'pocsag_sender.tasks.transmit_messages',
-        'schedule': 5.0, # every 5 seconds
+        'schedule': 5.0,  # every 5 seconds
     },
     'pick-data': {
         'task': 'news_picker.tasks.pick_data',
-        'schedule': crontab(), # every one minute
+        'schedule': crontab(),  # every one minute
     },
 }
 
+
 # For the news picker
 
-TOKEN_OWM = os.environ['TOKEN_OWM']
-WEATHER_CITY = 'Novokuznetsk'
+TOKEN_OWM = env('TOKEN_OWM')
+WEATHER_CITY = 'Moscow'
+
+
+try:
+    from .settings_local import *
+except ImportError:
+    pass
+CELERY_TIMEZONE = TIME_ZONE

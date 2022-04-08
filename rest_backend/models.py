@@ -2,11 +2,17 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 
-MESSAGE_MAX_LENGTH = 950
+MESSAGE_MAX_LENGTH = 900
 CAPCODE_MIN_VALUE = 0
 CAPCODE_MAX_VALUE = 9999999
 FREQ_MIN_VALUE = 120000000
 FREQ_MAX_VALUE = 999999999
+
+BAUDRATES = (
+    (1, 512),
+    (2, 1200),
+    (3, 2400),
+)
 
 FBITS = (
     (0, 0),
@@ -53,6 +59,11 @@ class DirectMessage(models.Model):
         verbose_name='Источник',
         choices=FBITS,
     )
+    baudrate = models.PositiveSmallIntegerField(
+        verbose_name='Скорость передачи',
+        choices=BAUDRATES,
+        default=2,
+    )
     codepage = models.PositiveSmallIntegerField(
         verbose_name='Кодировка текста',
         choices=CODEPAGES,
@@ -85,6 +96,11 @@ class Transmitter(models.Model):
             MinValueValidator(FREQ_MIN_VALUE),
             MaxValueValidator(FREQ_MAX_VALUE),
         ]
+    )
+    baudrate = models.PositiveSmallIntegerField(
+        verbose_name='Скорость передачи',
+        choices=BAUDRATES,
+        default=2,
     )
 
     def __str__(self):
