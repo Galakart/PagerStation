@@ -1,4 +1,11 @@
 
+from flask import current_app
+
+(flask db init)
+flask db migrate -m "Initial"
+flask db upgrade
+(flask db downgrade)
+
 # Pager Station
 
 ![pager_main](docs/img/pager_main.png)
