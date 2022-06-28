@@ -2,17 +2,17 @@
 import sys
 
 
-def calculate_frame(capcode):
-    print(f'Frame: {capcode % 8}')
+def calculate_frame(cap_number):
+    print(f'Frame: {cap_number % 8}')
 
 
 if __name__ == '__main__':
     try:
-        cap = int(sys.argv[1])
-        if cap < 0 or cap > 9999999:
+        capcode = int(sys.argv[1])
+        if capcode < 0 or capcode > 9999999:
             raise ValueError
     except ValueError:
         print('Wrong capcode')
         sys.exit()
 
-    calculate_frame(cap)
+    calculate_frame(capcode)
