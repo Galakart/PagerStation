@@ -6,6 +6,42 @@ flask db migrate -m "Initial"
 flask db upgrade
 (flask db downgrade)
 
+
+
+
+nginx
+
+server {
+listen 80;
+
+location /pager_mini/ {
+include proxy_params;
+proxy_pass http://unix:/home/pi/services/pager_mini/pager_mini.sock;
+}
+}
+
+
+service
+
+[Unit]
+Description=Pager Mini service
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/home/pi/services/pager_mini
+ExecStart=/home/pi/services/pager_mini/venv/bin/gunicorn --workers 2 --bind unix:/home/pi/services/pager_mini/pager_mini.sock wsgi:app --preload
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
+
+
+
 # Pager Station
 
 ![pager_main](docs/img/pager_main.png)
@@ -254,7 +290,7 @@ celery -A pagerstation worker -l info -B
 **Переходим к настройке Nginx.**  
 Создадим конфиг, удалив при этом стандартный:
 ```bash
-sudo rm /etc/nginx/sites-enabled/default
+sudo unlink /etc/nginx/sites-enabled/default
 sudo nano /etc/nginx/sites-available/pagerstation
 ```
 

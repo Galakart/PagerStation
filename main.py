@@ -5,6 +5,7 @@ import logging.handlers as loghandlers
 import os
 from distutils.util import strtobool
 
+import requests
 from dotenv import load_dotenv
 # from flask_restful import Api, Resource
 from flask import Flask, request
@@ -80,6 +81,15 @@ CODEPAGES = {
 ROLES = {
     'admin': 10,
 }
+
+MAILDROP_TYPES = {
+    'notification': 1,
+    'news': 2,
+    'weather': 3,
+    'currency': 4,
+}
+
+# TODO BigInteger и SmallInteger
 
 
 class Baudrate(db.Model):
@@ -199,6 +209,45 @@ class MessagePrivate(db.Model):
         return "<{}:{}>".format(self.id,  self.id_pager)
 
 
+class MailDropType(db.Model):
+    __tablename__ = 'n_maildrop_types'
+    __table_args__ = {"comment": "Типы новостных рассылок"}
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+
+    def __repr__(self):
+        return "<{}:{}>".format(self.id,  self.name)
+
+
+class MailDropChannels(db.Model):
+    __tablename__ = 'maildrop_channels'
+    __table_args__ = {"comment": "Новостные каналы трансмиттера, и их капкоды"}
+
+    id_transmitter = db.Column(db.Integer, db.ForeignKey('transmitters.id'), primary_key=True)
+    capcode = db.Column(db.Integer, primary_key=True)
+    id_fbit = db.Column(db.Integer, db.ForeignKey('n_fbits.id'), primary_key=True)
+    id_maildrop_type = db.Column(db.Integer, db.ForeignKey('n_maildrop_types.id'), nullable=False)
+    id_codepage = db.Column(db.Integer, db.ForeignKey('n_codepages.id'), nullable=False)
+
+    def __repr__(self):
+        return "<{}:{}>".format(self.id_transmitter,  self.id_maildrop_type)
+
+
+class MessageMailDrop(db.Model):
+    __tablename__ = 'messages_maildrop'
+    __table_args__ = {"comment": "Сообщения - новостные"}
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    id_maildrop_type = db.Column(db.Integer, db.ForeignKey('n_maildrop_types.id'), nullable=False)
+    message = db.Column(db.String(950), nullable=False)
+    sent = db.Column(db.Boolean, nullable=False, default=False)
+    date_create = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now)
+
+    def __repr__(self):
+        return "<{}:{}>".format(self.id,  self.id_pager)
+
+
 # class ToAdmin(Resource):
 #     def get(self):
 #         return "<h1>ololo</h1>"
@@ -260,17 +309,70 @@ def form_example():
 @scheduler.task('interval', id='do_job_pocsag_sender', seconds=5, misfire_grace_time=900)
 def job_pocsag_sender():
     session = scoped_session(db_session)
-    unsent_messages_tuple = session.query(MessagePrivate).filter(MessagePrivate.sent == 0).limit(10).all()
-    if unsent_messages_tuple:
-        for unsent_message_item in unsent_messages_tuple:
-            pager_item = Pager.query.get(unsent_message_item.id_pager)
+
+    unsent_messages_private_tuple = session.query(MessagePrivate).filter(MessagePrivate.sent == 0).limit(10).all()
+    if unsent_messages_private_tuple:
+        for unsent_message_private_item in unsent_messages_private_tuple:
+            pager_item = Pager.query.get(unsent_message_private_item.id_pager)
             transmitter_item = Transmitter.query.get(pager_item.id_transmitter)
             baudrate_item = Baudrate.query.get(transmitter_item.id_baudrate)
             message_to_air(pager_item.capcode, pager_item.id_fbit, transmitter_item.freq,
-                           baudrate_item.name, unsent_message_item.message)
-            unsent_message_item.sent = 1
-            session.add(unsent_message_item)
+                           baudrate_item.name, unsent_message_private_item.message)
+            unsent_message_private_item.sent = 1
+            session.add(unsent_message_private_item)
         session.commit()
+
+    unsent_messages_maildrop_tuple = session.query(MessageMailDrop).filter(MessageMailDrop.sent == 0).limit(10).all()
+    if unsent_messages_maildrop_tuple:
+        for unsent_message_maildrop_item in unsent_messages_maildrop_tuple:
+            maildrop_channels_tuple = session.query(MailDropChannels).filter(
+                MailDropChannels.id_maildrop_type == unsent_message_maildrop_item.id_maildrop_type).all()
+            for maildrop_channel_item in maildrop_channels_tuple:
+                transmitter_item = Transmitter.query.get(maildrop_channel_item.id_transmitter)
+                baudrate_item = Baudrate.query.get(transmitter_item.id_baudrate)
+                message_to_air(maildrop_channel_item.capcode, maildrop_channel_item.id_fbit,
+                               transmitter_item.freq, baudrate_item.name, unsent_message_maildrop_item.message)
+                unsent_message_maildrop_item.sent = 1
+                session.add(unsent_message_maildrop_item)
+        session.commit()
+
+    session.close()
+
+
+@scheduler.task('interval', id='do_job_maildrop_picker', seconds=60, misfire_grace_time=900)
+def job_maildrop_picker():
+    session = scoped_session(db_session)
+
+    id_maildrop_type = MAILDROP_TYPES['currency']
+    today_datetime = datetime.datetime.now()
+    last_sent_message = session.query(MessageMailDrop).filter(
+        MessageMailDrop.id_maildrop_type == id_maildrop_type).order_by(db.desc(MessageMailDrop.id)).first()
+    if last_sent_message:
+        delta_dates = today_datetime - last_sent_message.date_create
+        delta_hours = divmod(delta_dates.total_seconds(), 3600)[0]
+
+    if not last_sent_message or (today_datetime.hour == 7 and today_datetime.minute == 0) or delta_hours > 24:
+        try:
+            response_ping = requests.get('https://api.coingate.com/v2/ping')
+            if int(response_ping.status_code) == 200:
+                cur_usd = requests.get('https://api.coingate.com/v2/rates/merchant/USD/RUB').text
+                cur_eur = requests.get('https://api.coingate.com/v2/rates/merchant/EUR/RUB').text
+                cur_btc = requests.get('https://api.coingate.com/v2/rates/merchant/BTC/RUB').text
+
+                currency_mes = f'Курс валют. Доллар: {cur_usd} руб. Евро: {cur_eur} руб. Биткоин: {cur_btc} руб.'
+            else:
+                currency_mes = 'Нет данных о курсах валют'
+
+        except Exception as ex:
+            currency_mes = 'Ошибка получения курсов валют'
+
+        new_mes = MessageMailDrop(
+            id_maildrop_type=id_maildrop_type,
+            message=currency_mes
+        )
+        session.add(new_mes)
+        session.commit()
+
     session.close()
 
 
