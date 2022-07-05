@@ -3,6 +3,7 @@ import datetime
 import logging
 import logging.handlers as loghandlers
 import os
+import time
 from distutils.util import strtobool
 
 import requests
@@ -12,6 +13,9 @@ from flask import Flask, request
 from flask_apscheduler import APScheduler
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from pyowm import OWM
+from pyowm.utils import timestamps
+from pyowm.utils.config import get_default_config
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -25,6 +29,8 @@ DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_NAME = os.getenv('DB_NAME')
 DB_HOST = os.getenv('DB_HOST')
 DB_URL = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+OWM_TOKEN = os.getenv('OWM_TOKEN')
+OWM_CITY = os.getenv('OWM_CITY')
 
 
 app = Flask(__name__)
@@ -342,9 +348,51 @@ def job_pocsag_sender():
 @scheduler.task('interval', id='do_job_maildrop_picker', seconds=60, misfire_grace_time=900)
 def job_maildrop_picker():
     session = scoped_session(db_session)
-
-    id_maildrop_type = MAILDROP_TYPES['currency']
     today_datetime = datetime.datetime.now()
+
+    # Погода
+    id_maildrop_type = MAILDROP_TYPES['weather']
+    last_sent_message = session.query(MessageMailDrop).filter(
+        MessageMailDrop.id_maildrop_type == id_maildrop_type).order_by(db.desc(MessageMailDrop.id)).first()
+    if last_sent_message:
+        delta_dates = today_datetime - last_sent_message.date_create
+        delta_hours = divmod(delta_dates.total_seconds(), 3600)[0]
+
+    if not last_sent_message or (today_datetime.hour in (7, 14, 21) and today_datetime.minute == 0) or delta_hours > 24:
+        try:
+            config_dict = get_default_config()
+            config_dict['language'] = 'ru'
+            owm = OWM(OWM_TOKEN, config_dict)
+            mgr = owm.weather_manager()
+            w = mgr.weather_at_place(OWM_CITY).weather
+
+            temp = round(w.temperature('celsius')['temp'])
+            if temp > 0:
+                temp = f'+{temp}'
+            status = w.detailed_status
+            hum = w.humidity
+            sunrise = time.strftime("%H:%M", time.localtime(w.sunrise_time(timeformat='unix')))
+            sunset = time.strftime("%H:%M", time.localtime(w.sunset_time(timeformat='unix')))
+
+            owm_forecast_tomorrow = mgr.forecast_at_place(OWM_CITY, '3h').get_weather_at(timestamps.tomorrow())
+            temp_tomorrow = round(owm_forecast_tomorrow.temperature('celsius')['temp'])
+            if temp_tomorrow > 0:
+                temp_tomorrow = f'+{temp_tomorrow}'
+            status_tomorrow = owm_forecast_tomorrow.detailed_status
+
+            mes_weather = f'Погода. Сейчас: {temp}, {status}, влажность {hum}%, восход: {sunrise}, закат: {sunset} *** Завтра: {temp_tomorrow}, {status_tomorrow}'
+        except Exception as ex:
+            mes_weather = 'Ошибка получения данных о погоде'
+
+        new_mes = MessageMailDrop(
+            id_maildrop_type=id_maildrop_type,
+            message=mes_weather
+        )
+        session.add(new_mes)
+        session.commit()
+
+    # Курс валют
+    id_maildrop_type = MAILDROP_TYPES['currency']
     last_sent_message = session.query(MessageMailDrop).filter(
         MessageMailDrop.id_maildrop_type == id_maildrop_type).order_by(db.desc(MessageMailDrop.id)).first()
     if last_sent_message:
