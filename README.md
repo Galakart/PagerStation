@@ -1,10 +1,13 @@
 
-from flask import current_app
+alembic init alembic
 
-(flask db init)
-flask db migrate -m "Initial"
-flask db upgrade
-(flask db downgrade)
+alembic revision --autogenerate -m 'comment'
+
+alembic upgrade head
+
+alembic history
+
+alembic downgrade -1
 
 
 

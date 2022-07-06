@@ -4,254 +4,45 @@ import logging
 import logging.handlers as loghandlers
 import os
 import time
-from distutils.util import strtobool
 
 import requests
-from dotenv import load_dotenv
 # from flask_restful import Api, Resource
 from flask import Flask, request
 from flask_apscheduler import APScheduler
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
 from pyowm import OWM
 from pyowm.utils import timestamps
 from pyowm.utils.config import get_default_config
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
 
+import config
+import db
 from charset_encoder import CharsetEncoder
-
-load_dotenv()
-
-IS_TEST = strtobool(os.getenv('IS_TEST'))
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_NAME = os.getenv('DB_NAME')
-DB_HOST = os.getenv('DB_HOST')
-DB_URL = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
-OWM_TOKEN = os.getenv('OWM_TOKEN')
-OWM_CITY = os.getenv('OWM_CITY')
-
+from models import MAILDROP_TYPES, Baudrate, Transmitter
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
 # api = Api(app)
-engine = create_engine(DB_URL, pool_size=5)
-db_session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 charset_encoder = CharsetEncoder()
 
 scheduler = APScheduler()
-scheduler.api_enabled = IS_TEST
+scheduler.api_enabled = config.IS_TEST
 scheduler.init_app(app)
 
 
 if not os.path.exists('logs'):
     os.makedirs('logs')
+LOGGER = logging.getLogger('applog')
+LOGGER.setLevel(logging.INFO)
 formatter = logging.Formatter(
     '%(asctime)s  %(filename)s  %(funcName)s  %(lineno)d  %(name)s  %(levelname)s: %(message)s')
 log_handler = loghandlers.RotatingFileHandler(
     './logs/botlog.log',
     maxBytes=1000000,
     encoding='utf-8',
-    backupCount=50
+    backupCount=10
 )
 log_handler.setLevel(logging.INFO)
 log_handler.setFormatter(formatter)
-app.logger.addHandler(log_handler)
-app.logger.setLevel(logging.INFO)
-
-
-BAUDRATES = {
-    '512': 1,
-    '1024': 2,
-    '2048': 3,
-}
-
-FBITS = {
-    '0': 0,
-    '1': 1,
-    '2': 2,
-    '3': 3,
-}
-
-CODEPAGES = {
-    'lat': 1,
-    'cyr': 2,
-    'linguist': 3,
-}
-
-ROLES = {
-    'admin': 10,
-}
-
-MAILDROP_TYPES = {
-    'notification': 1,
-    'news': 2,
-    'weather': 3,
-    'currency': 4,
-}
-
-# TODO BigInteger и SmallInteger
-
-
-class Baudrate(db.Model):
-    __tablename__ = 'n_baudrates'
-    __table_args__ = {"comment": "Скорости передачи данных"}
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
-    name = db.Column(db.String(4), unique=True, nullable=False)
-
-    def __repr__(self):
-        return "<{}:{}>".format(self.id,  self.name)
-
-
-class Fbit(db.Model):
-    __tablename__ = 'n_fbits'
-    __table_args__ = {"comment": "Источники (функциональные биты)"}
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
-    name = db.Column(db.String(1), unique=True, nullable=False)
-
-    def __repr__(self):
-        return "<{}:{}>".format(self.id,  self.name)
-
-
-class Codepage(db.Model):
-    __tablename__ = 'n_codepages'
-    __table_args__ = {"comment": "Кодировки текста"}
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
-    name = db.Column(db.String(8), unique=True, nullable=False)
-
-    def __repr__(self):
-        return "<{}:{}>".format(self.id,  self.name)
-
-
-class Transmitter(db.Model):
-    __tablename__ = 'transmitters'
-    __table_args__ = {"comment": "Передатчики"}
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
-    freq = db.Column(db.Integer, unique=True, nullable=False)
-    id_baudrate = db.Column(db.Integer, db.ForeignKey('n_baudrates.id'), nullable=False)
-
-    def __repr__(self):
-        return "<{}:{}>".format(self.id,  self.name)
-
-
-user_pagers = db.Table(
-    "user_pagers",
-    db.Column("id_user", db.Integer, db.ForeignKey("users.id")),
-    db.Column("id_pager", db.Integer, db.ForeignKey("pagers.id")),
-)
-
-
-class Pager(db.Model):
-    __tablename__ = 'pagers'
-    __table_args__ = {"comment": "Пейджеры"}
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=False, comment='Абонентский номер')
-    capcode = db.Column(db.Integer, nullable=False)
-    id_fbit = db.Column(db.Integer, db.ForeignKey('n_fbits.id'), nullable=False)
-    id_codepage = db.Column(db.Integer, db.ForeignKey('n_codepages.id'), nullable=False)
-    id_transmitter = db.Column(db.Integer, db.ForeignKey('transmitters.id'), nullable=False)
-    users = db.relationship('User', secondary=user_pagers, back_populates='pagers')
-
-    def __repr__(self):
-        return "<{}>".format(self.id)
-
-
-class User(db.Model):
-    __tablename__ = 'users'
-    __table_args__ = {"comment": "Пользователи пейджеров"}
-
-    id = db.Column(db.Integer, primary_key=True)
-    fio = db.Column(db.String(200), nullable=False)
-    datar = db.Column(db.Date)
-    pagers = db.relationship('Pager', secondary=user_pagers, back_populates='users')
-
-    def __repr__(self):
-        return "<{}:{}>".format(self.id, self.fio)
-
-
-class Role(db.Model):
-    __tablename__ = 'n_role'
-    __table_args__ = {"comment": "Список доступных дополнительных ролей пользователй"}
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
-    name = db.Column(db.String(25), unique=True, nullable=False)
-
-    def __repr__(self):
-        return "<{}:{}>".format(self.id,  self.name)
-
-
-class ServiceRole(db.Model):
-    __tablename__ = 'service_roles'
-    __table_args__ = {"comment": "Дополнительные роли пользователей"}
-
-    id_user = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
-    id_role = db.Column(db.Integer, db.ForeignKey('n_role.id'), primary_key=True)
-
-    def __repr__(self):
-        return "<{}:{}>".format(self.id_user,  self.id_role)
-
-
-class MessagePrivate(db.Model):
-    __tablename__ = 'messages_private'
-    __table_args__ = {"comment": "Сообщения - личные"}
-
-    id = db.Column(db.Integer, primary_key=True)
-    id_pager = db.Column(db.Integer, db.ForeignKey('pagers.id'), nullable=False)
-    message = db.Column(db.String(950), nullable=False)
-    sent = db.Column(db.Boolean, nullable=False, default=False)
-    date_create = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now)
-
-    def __repr__(self):
-        return "<{}:{}>".format(self.id,  self.id_pager)
-
-
-class MailDropType(db.Model):
-    __tablename__ = 'n_maildrop_types'
-    __table_args__ = {"comment": "Типы новостных рассылок"}
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
-    name = db.Column(db.String(50), unique=True, nullable=False)
-
-    def __repr__(self):
-        return "<{}:{}>".format(self.id,  self.name)
-
-
-class MailDropChannels(db.Model):
-    __tablename__ = 'maildrop_channels'
-    __table_args__ = {"comment": "Новостные каналы трансмиттера, и их капкоды"}
-
-    id_transmitter = db.Column(db.Integer, db.ForeignKey('transmitters.id'), primary_key=True)
-    capcode = db.Column(db.Integer, primary_key=True)
-    id_fbit = db.Column(db.Integer, db.ForeignKey('n_fbits.id'), primary_key=True)
-    id_maildrop_type = db.Column(db.Integer, db.ForeignKey('n_maildrop_types.id'), nullable=False)
-    id_codepage = db.Column(db.Integer, db.ForeignKey('n_codepages.id'), nullable=False)
-
-    def __repr__(self):
-        return "<{}:{}>".format(self.id_transmitter,  self.id_maildrop_type)
-
-
-class MessageMailDrop(db.Model):
-    __tablename__ = 'messages_maildrop'
-    __table_args__ = {"comment": "Сообщения - новостные"}
-
-    id = db.Column(db.BigInteger, primary_key=True)
-    id_maildrop_type = db.Column(db.Integer, db.ForeignKey('n_maildrop_types.id'), nullable=False)
-    message = db.Column(db.String(950), nullable=False)
-    sent = db.Column(db.Boolean, nullable=False, default=False)
-    date_create = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now)
-
-    def __repr__(self):
-        return "<{}:{}>".format(self.id,  self.id_pager)
+LOGGER.addHandler(log_handler)
 
 
 # class ToAdmin(Resource):
@@ -273,17 +64,12 @@ def form_example():
                 </CENTER>
                 """
 
-        admins_lst = User.query.join(ServiceRole, ServiceRole.id_user == User.id).filter(
-            ServiceRole.id_role == ROLES['admin']).all()
-        if admins_lst:
-            for admin_item in admins_lst:
-                for pager_item in admin_item.pagers:
-                    new_mes = MessagePrivate(
-                        id_pager=pager_item.id,
-                        message=mes_text
-                    )
-                    db.session.add(new_mes)
-            db.session.commit()
+        admins_tuple = db.common.get_admins()
+        if admins_tuple:
+            for admin_item in admins_tuple:
+                pagers = db.common.get_user_pagers(admin_item.id)
+                for pager_item in pagers:
+                    db.common.create_message_private(pager_item.id, mes_text)
         else:
             return f"""
                 <CENTER>
@@ -314,46 +100,37 @@ def form_example():
 
 @scheduler.task('interval', id='do_job_pocsag_sender', seconds=5, misfire_grace_time=900)
 def job_pocsag_sender():
-    session = scoped_session(db_session)
 
-    unsent_messages_private_tuple = session.query(MessagePrivate).filter(MessagePrivate.sent == 0).limit(10).all()
+    unsent_messages_private_tuple = db.common.get_unsent_messages_private()
     if unsent_messages_private_tuple:
         for unsent_message_private_item in unsent_messages_private_tuple:
-            pager_item = Pager.query.get(unsent_message_private_item.id_pager)
-            transmitter_item = Transmitter.query.get(pager_item.id_transmitter)
-            baudrate_item = Baudrate.query.get(transmitter_item.id_baudrate)
+            pager_item = db.common.get_pager(unsent_message_private_item.id_pager)
+            transmitter_item = db.common.find_classifier_object(Transmitter, pager_item.id_transmitter)
+            baudrate_item = db.common.find_classifier_object(Baudrate, transmitter_item.id_baudrate)
             message_to_air(pager_item.capcode, pager_item.id_fbit, transmitter_item.freq,
                            baudrate_item.name, unsent_message_private_item.message)
-            unsent_message_private_item.sent = 1
-            session.add(unsent_message_private_item)
-        session.commit()
+            db.common.mark_message_private_sent(unsent_message_private_item.id)
 
-    unsent_messages_maildrop_tuple = session.query(MessageMailDrop).filter(MessageMailDrop.sent == 0).limit(10).all()
+    unsent_messages_maildrop_tuple = db.common.get_unsent_messages_maildrop()
     if unsent_messages_maildrop_tuple:
         for unsent_message_maildrop_item in unsent_messages_maildrop_tuple:
-            maildrop_channels_tuple = session.query(MailDropChannels).filter(
-                MailDropChannels.id_maildrop_type == unsent_message_maildrop_item.id_maildrop_type).all()
+            maildrop_channels_tuple = db.common.get_maildrop_channels_by_type(
+                unsent_message_maildrop_item.id_maildrop_type)
             for maildrop_channel_item in maildrop_channels_tuple:
-                transmitter_item = Transmitter.query.get(maildrop_channel_item.id_transmitter)
-                baudrate_item = Baudrate.query.get(transmitter_item.id_baudrate)
+                transmitter_item = db.common.find_classifier_object(Transmitter, maildrop_channel_item.id_transmitter)
+                baudrate_item = db.common.find_classifier_object(Baudrate, transmitter_item.id_baudrate)
                 message_to_air(maildrop_channel_item.capcode, maildrop_channel_item.id_fbit,
                                transmitter_item.freq, baudrate_item.name, unsent_message_maildrop_item.message)
-                unsent_message_maildrop_item.sent = 1
-                session.add(unsent_message_maildrop_item)
-        session.commit()
-
-    session.close()
+                db.common.mark_message_maildrop_sent(unsent_message_maildrop_item.id)
 
 
-@scheduler.task('interval', id='do_job_maildrop_picker', seconds=60, misfire_grace_time=900)
+@scheduler.task('interval', id='do_job_maildrop_picker', seconds=5, misfire_grace_time=900)
 def job_maildrop_picker():
-    session = scoped_session(db_session)
     today_datetime = datetime.datetime.now()
 
     # Погода
     id_maildrop_type = MAILDROP_TYPES['weather']
-    last_sent_message = session.query(MessageMailDrop).filter(
-        MessageMailDrop.id_maildrop_type == id_maildrop_type).order_by(db.desc(MessageMailDrop.id)).first()
+    last_sent_message = db.common.get_last_sent_maildrop_by_type(id_maildrop_type)
     if last_sent_message:
         delta_dates = today_datetime - last_sent_message.date_create
         delta_hours = divmod(delta_dates.total_seconds(), 3600)[0]
@@ -362,9 +139,9 @@ def job_maildrop_picker():
         try:
             config_dict = get_default_config()
             config_dict['language'] = 'ru'
-            owm = OWM(OWM_TOKEN, config_dict)
+            owm = OWM(config.OWM_TOKEN, config_dict)
             mgr = owm.weather_manager()
-            w = mgr.weather_at_place(OWM_CITY).weather
+            w = mgr.weather_at_place(config.OWM_CITY).weather
 
             temp = round(w.temperature('celsius')['temp'])
             if temp > 0:
@@ -374,7 +151,7 @@ def job_maildrop_picker():
             sunrise = time.strftime("%H:%M", time.localtime(w.sunrise_time(timeformat='unix')))
             sunset = time.strftime("%H:%M", time.localtime(w.sunset_time(timeformat='unix')))
 
-            owm_forecast_tomorrow = mgr.forecast_at_place(OWM_CITY, '3h').get_weather_at(timestamps.tomorrow())
+            owm_forecast_tomorrow = mgr.forecast_at_place(config.OWM_CITY, '3h').get_weather_at(timestamps.tomorrow())
             temp_tomorrow = round(owm_forecast_tomorrow.temperature('celsius')['temp'])
             if temp_tomorrow > 0:
                 temp_tomorrow = f'+{temp_tomorrow}'
@@ -384,17 +161,11 @@ def job_maildrop_picker():
         except Exception as ex:
             mes_weather = 'Ошибка получения данных о погоде'
 
-        new_mes = MessageMailDrop(
-            id_maildrop_type=id_maildrop_type,
-            message=mes_weather
-        )
-        session.add(new_mes)
-        session.commit()
+        db.common.create_message_maildrop(id_maildrop_type, mes_weather)
 
     # Курс валют
     id_maildrop_type = MAILDROP_TYPES['currency']
-    last_sent_message = session.query(MessageMailDrop).filter(
-        MessageMailDrop.id_maildrop_type == id_maildrop_type).order_by(db.desc(MessageMailDrop.id)).first()
+    last_sent_message = db.common.get_last_sent_maildrop_by_type(id_maildrop_type)
     if last_sent_message:
         delta_dates = today_datetime - last_sent_message.date_create
         delta_hours = divmod(delta_dates.total_seconds(), 3600)[0]
@@ -414,14 +185,7 @@ def job_maildrop_picker():
         except Exception as ex:
             currency_mes = 'Ошибка получения курсов валют'
 
-        new_mes = MessageMailDrop(
-            id_maildrop_type=id_maildrop_type,
-            message=currency_mes
-        )
-        session.add(new_mes)
-        session.commit()
-
-    session.close()
+        db.common.create_message_maildrop(id_maildrop_type, currency_mes)
 
 
 scheduler.start()
@@ -438,4 +202,4 @@ def message_to_air(capcode: int, fbit: int, freq: int, baudrate: int, message: s
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8095, debug=IS_TEST)
+    app.run(host='0.0.0.0', port=8095, debug=config.IS_TEST)

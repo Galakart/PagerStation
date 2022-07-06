@@ -2,7 +2,6 @@
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": true,
     "python.linting.pylintArgs": [
-        "--load-plugins", "pylint_flask_sqlalchemy",
         "--max-line-length=120"
     ],
     "python.formatting.provider": "autopep8",
