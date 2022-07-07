@@ -104,7 +104,6 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     fio = Column(String(200), nullable=False)
     datar = Column(Date)
-    datar2 = Column(Date)
     pagers = relationship('Pager', secondary=user_pagers, back_populates='users')
 
 
