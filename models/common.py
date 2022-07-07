@@ -1,12 +1,11 @@
-"""Модели"""
+"""Модели общие"""
 import datetime
 
 from sqlalchemy import (BigInteger, Boolean, Column, Date, DateTime,
                         ForeignKey, Integer, String, Table)
-from sqlalchemy.orm import declarative_base, relationship
-from sqlalchemy_repr import PrettyRepresentableBase
+from sqlalchemy.orm import relationship
 
-Base = declarative_base(cls=PrettyRepresentableBase)
+from models.base import Base
 
 # TODO BigInteger и SmallInteger
 # TODO соотношения между моделями настроить, чтобы например из Pager перескочить на Transmitter
@@ -105,6 +104,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     fio = Column(String(200), nullable=False)
     datar = Column(Date)
+    datar2 = Column(Date)
     pagers = relationship('Pager', secondary=user_pagers, back_populates='users')
 
 

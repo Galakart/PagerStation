@@ -1,5 +1,5 @@
-from models import (ROLES, MailDropChannels, MessageMailDrop, MessagePrivate,
-                    Pager, ServiceRole, User, user_pagers)
+from models.common import (ROLES, MailDropChannels, MessageMailDrop,
+                           MessagePrivate, Pager, ServiceRole, User)
 from sqlalchemy import desc
 
 from db.connection import Session

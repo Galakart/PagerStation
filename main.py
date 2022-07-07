@@ -16,7 +16,7 @@ from pyowm.utils.config import get_default_config
 import config
 import db
 from charset_encoder import CharsetEncoder
-from models import MAILDROP_TYPES, Baudrate, Transmitter
+from models.common import MAILDROP_TYPES, Baudrate, Codepage, Transmitter
 
 app = Flask(__name__)
 # api = Api(app)
@@ -107,8 +107,9 @@ def job_pocsag_sender():
             pager_item = db.common.get_pager(unsent_message_private_item.id_pager)
             transmitter_item = db.common.find_classifier_object(Transmitter, pager_item.id_transmitter)
             baudrate_item = db.common.find_classifier_object(Baudrate, transmitter_item.id_baudrate)
+            codepage_item = db.common.find_classifier_object(Codepage, pager_item.id_codepage)
             message_to_air(pager_item.capcode, pager_item.id_fbit, transmitter_item.freq,
-                           baudrate_item.name, unsent_message_private_item.message)
+                           baudrate_item.name, codepage_item.id, unsent_message_private_item.message)
             db.common.mark_message_private_sent(unsent_message_private_item.id)
 
     unsent_messages_maildrop_tuple = db.common.get_unsent_messages_maildrop()
@@ -119,12 +120,13 @@ def job_pocsag_sender():
             for maildrop_channel_item in maildrop_channels_tuple:
                 transmitter_item = db.common.find_classifier_object(Transmitter, maildrop_channel_item.id_transmitter)
                 baudrate_item = db.common.find_classifier_object(Baudrate, transmitter_item.id_baudrate)
+                codepage_item = db.common.find_classifier_object(Codepage, maildrop_channel_item.id_codepage)
                 message_to_air(maildrop_channel_item.capcode, maildrop_channel_item.id_fbit,
-                               transmitter_item.freq, baudrate_item.name, unsent_message_maildrop_item.message)
+                               transmitter_item.freq, baudrate_item.name, codepage_item.id, unsent_message_maildrop_item.message)
                 db.common.mark_message_maildrop_sent(unsent_message_maildrop_item.id)
 
 
-@scheduler.task('interval', id='do_job_maildrop_picker', seconds=5, misfire_grace_time=900)
+@scheduler.task('interval', id='do_job_maildrop_picker', seconds=60, misfire_grace_time=900)
 def job_maildrop_picker():
     today_datetime = datetime.datetime.now()
 
@@ -191,7 +193,7 @@ def job_maildrop_picker():
 scheduler.start()
 
 
-def message_to_air(capcode: int, fbit: int, freq: int, baudrate: int, message: str) -> bool:
+def message_to_air(capcode: int, fbit: int, freq: int, baudrate: int, id_codepage: int, message: str) -> bool:
     capcode = f'{capcode:07d}'
     message_text = charset_encoder.encode_message(message)
     if not os.path.exists('./pocsag'):
