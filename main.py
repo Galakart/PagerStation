@@ -195,9 +195,8 @@ scheduler.start()
 
 def message_to_air(capcode: int, fbit: int, freq: int, baudrate: int, id_codepage: int, message: str) -> bool:
     capcode = f'{capcode:07d}'
-    message_text = charset_encoder.encode_message(message)
+    message_text = charset_encoder.encode_message(message, id_codepage)
     if not os.path.exists('./pocsag'):
-        # print(f'echo "{capcode}:{message_text}" | sudo ./pocsag -f "{freq}" -b {fbit} -r {baudrate} -t 1')
         return False
     os.system(f'echo "{capcode}:{message_text}" | sudo ./pocsag -f "{freq}" -b {fbit} -r {baudrate} -t 1')
     return True

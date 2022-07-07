@@ -8,3 +8,4 @@ pyowm==3.3.0
 requests==2.28.0
 SQLAlchemy==1.4.37
 sqlalchemy-repr==0.0.2
+transliterate==1.10.2
