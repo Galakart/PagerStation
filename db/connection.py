@@ -1,4 +1,4 @@
-"""Соединение с БД"""
+"""Сессии SQLAlchemy"""
 import config as botconf
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

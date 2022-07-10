@@ -1,6 +1,6 @@
 from transliterate import translit
 
-from models.common import CODEPAGES
+from models.mdl_pagers import CODEPAGES
 
 ALLOWED_SYMBOLS = [
     ' ',  '!',  '"',  '#',  '$',  '%',  '&',  '\'',  '(',  ')',  '*',  '+',  ',',  '-',  '.',  '/',  '0',  '1',  '2',
