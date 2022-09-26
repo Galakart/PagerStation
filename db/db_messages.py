@@ -1,5 +1,5 @@
 """Операции с пейджинговыми сообщениями"""
-from models.mdl_messages import (MailDropChannels, MessageMailDrop,
+from models.model_messages import (MailDropChannels, MessageMailDrop,
                                  MessagePrivate)
 from sqlalchemy import desc
 

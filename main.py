@@ -8,9 +8,9 @@ import os
 import time
 
 import requests
-# from flask_restful import Api, Resource
-from flask import Flask, request
-from flask_apscheduler import APScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
+from fastapi import FastAPI, Form
+from fastapi.responses import FileResponse, HTMLResponse
 from pyowm import OWM
 from pyowm.utils import timestamps
 from pyowm.utils.config import get_default_config
@@ -18,17 +18,12 @@ from pyowm.utils.config import get_default_config
 import config
 import db
 from charset_encoder import CharsetEncoder
-from models.mdl_messages import MAILDROP_TYPES
-from models.mdl_pagers import Baudrate, Codepage, Transmitter
+from models.model_messages import MAILDROP_TYPES
+from models.model_pagers import Baudrate, Codepage, Transmitter
 
-app = Flask(__name__)
-# api = Api(app)
-
+app = FastAPI()
+scheduler = BackgroundScheduler()
 charset_encoder = CharsetEncoder()
-
-scheduler = APScheduler()
-scheduler.api_enabled = config.IS_TEST
-scheduler.init_app(app)
 
 
 if not os.path.exists('logs'):
@@ -48,95 +43,78 @@ log_handler.setFormatter(formatter)
 LOGGER.addHandler(log_handler)
 
 
-# class ToAdmin(Resource):
-#     def get(self):
-#         return "<h1>ololo</h1>"
+@app.get("/to_admin", response_class=FileResponse)
+def msg_for_admin_form():
+    return "templates/to_admin.html"
 
 
-# api.add_resource(ToAdmin, '/toadmin/')
-
-@app.route('/toadmin/', methods=['GET', 'POST'])
-def form_example():
-    if request.method == 'POST':
-        mes_text = request.form.get('mes_text')[:950]
-        if not mes_text:
-            return """
-                <CENTER>
-                    <p><b>Введите сообщение!!!</b></p>
-                    <a href="./">назад</a>
-                </CENTER>
-                """
-
-        admins_tuple = db.dbops_users.get_admins()
-        if admins_tuple:
-            for admin_item in admins_tuple:
-                pagers = db.dbops_users.get_user_pagers(admin_item.id)
-                for pager_item in pagers:
-                    db.dbops_messages.create_message_private(pager_item.id, mes_text)
-        else:
-            return """
-                <CENTER>
-                    <p><b>Админов в сервисе не зарегистрировано</b></p>
-                    <a href="./">назад</a>
-                </CENTER>
-                """
-
+@app.post("/to_admin_form_action", response_class=HTMLResponse)
+def to_admin_form_action(mes_text=Form()):
+    if not mes_text:
         return """
-                <CENTER>
-                    <p><b>Сообщение отправлено</b></p>
-                    <a href="./">назад</a>
-                </CENTER>
-                """
+            <CENTER>
+                <p><b>Введите сообщение!!!</b></p>
+                <a href="./to_admin">назад</a>
+            </CENTER>
+            """
+
+    admins_tuple = db.db_users.get_admins()
+    if admins_tuple:
+        for admin_item in admins_tuple:
+            pagers = db.db_users.get_user_pagers(admin_item.id)
+            for pager_item in pagers:
+                db.db_messages.create_message_private(pager_item.id, mes_text)
+    else:
+        return """
+            <CENTER>
+                <p><b>Админов в сервисе не зарегистрировано</b></p>
+                <a href="./to_admin">назад</a>
+            </CENTER>
+            """
 
     return """
             <CENTER>
-                <H2>Отправь сообщение админу на пейджер</H2>
-                <form method="POST">
-                    <p><b>Текст сообщения:</b></p>
-                    <textarea name="mes_text" rows=10 cols=80 maxlength=950 required></textarea>
-                    <br /><br />
-                    <input type="submit" value="Отправить">
-                </form>
+                <p><b>Сообщение отправлено</b></p>
+                <a href="./to_admin">назад</a>
             </CENTER>
             """
 
 
-@scheduler.task('interval', id='do_job_pocsag_sender', seconds=5, misfire_grace_time=900)
+@scheduler.scheduled_job('interval', id='do_job_pocsag_sender', seconds=5, misfire_grace_time=900)
 def job_pocsag_sender():
-
-    unsent_messages_private_tuple = db.dbops_messages.get_unsent_messages_private()
+    unsent_messages_private_tuple = db.db_messages.get_unsent_messages_private()
     if unsent_messages_private_tuple:
         for unsent_message_private_item in unsent_messages_private_tuple:
-            pager_item = db.dbops_pagers.get_pager(unsent_message_private_item.id_pager)
-            transmitter_item = db.dbops_classifiers.find_classifier_object(Transmitter, pager_item.id_transmitter)
-            baudrate_item = db.dbops_classifiers.find_classifier_object(Baudrate, transmitter_item.id_baudrate)
-            codepage_item = db.dbops_classifiers.find_classifier_object(Codepage, pager_item.id_codepage)
+            pager_item = db.db_pagers.get_pager(unsent_message_private_item.id_pager)
+            transmitter_item = db.db_classifiers.find_classifier_object(Transmitter, pager_item.id_transmitter)
+            baudrate_item = db.db_classifiers.find_classifier_object(Baudrate, transmitter_item.id_baudrate)
+            codepage_item = db.db_classifiers.find_classifier_object(Codepage, pager_item.id_codepage)
             message_to_air(pager_item.capcode, pager_item.id_fbit, transmitter_item.freq,
                            baudrate_item.name, codepage_item.id, unsent_message_private_item.message)
-            db.dbops_messages.mark_message_private_sent(unsent_message_private_item.id)
+            db.db_messages.mark_message_private_sent(unsent_message_private_item.id)
 
-    unsent_messages_maildrop_tuple = db.dbops_messages.get_unsent_messages_maildrop()
+    unsent_messages_maildrop_tuple = db.db_messages.get_unsent_messages_maildrop()
     if unsent_messages_maildrop_tuple:
         for unsent_message_maildrop_item in unsent_messages_maildrop_tuple:
-            maildrop_channels_tuple = db.dbops_messages.get_maildrop_channels_by_type(
+            maildrop_channels_tuple = db.db_messages.get_maildrop_channels_by_type(
                 unsent_message_maildrop_item.id_maildrop_type)
             for maildrop_channel_item in maildrop_channels_tuple:
-                transmitter_item = db.dbops_classifiers.find_classifier_object(
+                transmitter_item = db.db_classifiers.find_classifier_object(
                     Transmitter, maildrop_channel_item.id_transmitter)
-                baudrate_item = db.dbops_classifiers.find_classifier_object(Baudrate, transmitter_item.id_baudrate)
-                codepage_item = db.dbops_classifiers.find_classifier_object(Codepage, maildrop_channel_item.id_codepage)
+                baudrate_item = db.db_classifiers.find_classifier_object(Baudrate, transmitter_item.id_baudrate)
+                codepage_item = db.db_classifiers.find_classifier_object(Codepage, maildrop_channel_item.id_codepage)
                 message_to_air(maildrop_channel_item.capcode, maildrop_channel_item.id_fbit,
                                transmitter_item.freq, baudrate_item.name, codepage_item.id, unsent_message_maildrop_item.message)
-                db.dbops_messages.mark_message_maildrop_sent(unsent_message_maildrop_item.id)
+                db.db_messages.mark_message_maildrop_sent(unsent_message_maildrop_item.id)
 
 
-@scheduler.task('interval', id='do_job_maildrop_picker', seconds=60, misfire_grace_time=900)
+@scheduler.scheduled_job('interval', id='do_job_maildrop_picker', seconds=60, misfire_grace_time=900)
 def job_maildrop_picker():
     today_datetime = datetime.datetime.now()
 
     # Погода
     id_maildrop_type = MAILDROP_TYPES['weather']
-    last_sent_message = db.dbops_messages.get_last_sent_maildrop_by_type(id_maildrop_type)
+    last_sent_message = db.db_messages.get_last_sent_maildrop_by_type(id_maildrop_type)
     if last_sent_message:
         delta_dates = today_datetime - last_sent_message.date_create
         delta_hours = divmod(delta_dates.total_seconds(), 3600)[0]
@@ -168,11 +146,11 @@ def job_maildrop_picker():
             LOGGER.error(ex)
             mes_weather = 'Ошибка получения данных о погоде'
 
-        db.dbops_messages.create_message_maildrop(id_maildrop_type, mes_weather)
+        db.db_messages.create_message_maildrop(id_maildrop_type, mes_weather)
 
     # Курс валют
     id_maildrop_type = MAILDROP_TYPES['currency']
-    last_sent_message = db.dbops_messages.get_last_sent_maildrop_by_type(id_maildrop_type)
+    last_sent_message = db.db_messages.get_last_sent_maildrop_by_type(id_maildrop_type)
     if last_sent_message:
         delta_dates = today_datetime - last_sent_message.date_create
         delta_hours = divmod(delta_dates.total_seconds(), 3600)[0]
@@ -193,7 +171,7 @@ def job_maildrop_picker():
             LOGGER.error(ex)
             currency_mes = 'Ошибка получения курсов валют'
 
-        db.dbops_messages.create_message_maildrop(id_maildrop_type, currency_mes)
+        db.db_messages.create_message_maildrop(id_maildrop_type, currency_mes)
 
 
 scheduler.start()
@@ -220,6 +198,5 @@ def message_to_air(capcode: int, fbit: int, freq: int, baudrate: int, id_codepag
     os.system(f'echo "{capcode}:{message_text}" | sudo ./pocsag -f "{freq}" -b {fbit} -r {baudrate} -t 1')
     return True
 
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8095, debug=config.IS_TEST)
+# to run manually, exec:
+# uvicorn main:app --reload --host 0.0.0.0 --port 8092

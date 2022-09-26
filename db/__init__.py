@@ -1,2 +1,2 @@
 """Объединитель всех файлов для работы с БД"""
-from . import dbops_classifiers, dbops_messages, dbops_pagers, dbops_users
+from . import db_classifiers, db_messages, db_pagers, db_users

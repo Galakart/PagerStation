@@ -1,6 +1,6 @@
 """Операции с юзерами"""
-from models.mdl_pagers import Pager
-from models.mdl_users import ROLES, ServiceRole, User
+from models.model_pagers import Pager
+from models.model_users import ROLES, ServiceRole, User
 
 from db.connection import Session
 

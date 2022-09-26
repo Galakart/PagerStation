@@ -3,7 +3,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from models.base import Base
-from models.mdl_users import user_pagers
+from models.model_users import user_pagers
 
 # pylint: disable=missing-class-docstring,too-few-public-methods
 

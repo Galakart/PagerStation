@@ -1,4 +1,4 @@
-from models.mdl_pagers import Pager
+from models.model_pagers import Pager
 
 from db.connection import Session
 
