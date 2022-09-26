@@ -17,9 +17,9 @@ nginx
 server {
 listen 80;
 
-location /pager_mini/ {
+location / {
 include proxy_params;
-proxy_pass http://unix:/home/pi/services/pager_mini/pager_mini.sock;
+proxy_pass http://unix:/home/pi/services/pagerstation/pagerstation.sock;
 }
 }
 
@@ -27,14 +27,14 @@ proxy_pass http://unix:/home/pi/services/pager_mini/pager_mini.sock;
 service
 
 [Unit]
-Description=Pager Mini service
+Description=PagerStation service
 After=network.target
 
 [Service]
 User=root
 Group=www-data
-WorkingDirectory=/home/pi/services/pager_mini
-ExecStart=/home/pi/services/pager_mini/venv/bin/gunicorn --workers 2 --bind unix:/home/pi/services/pager_mini/pager_mini.sock wsgi:app --preload
+WorkingDirectory=/home/pi/services/pagerstation
+ExecStart=/home/pi/services/pagerstation/venv/bin/gunicorn main:app
 
 [Install]
 WantedBy=multi-user.target

@@ -33,7 +33,7 @@ LOGGER.setLevel(logging.INFO)
 formatter = logging.Formatter(
     '%(asctime)s  %(filename)s  %(funcName)s  %(lineno)d  %(name)s  %(levelname)s: %(message)s')
 log_handler = loghandlers.RotatingFileHandler(
-    './logs/botlog.log',
+    './logs/applog.log',
     maxBytes=1000000,
     encoding='utf-8',
     backupCount=10
