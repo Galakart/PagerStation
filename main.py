@@ -143,8 +143,8 @@ def job_maildrop_picker():
 
             mes_weather = f'Погода. Сейчас: {temp}, {status}, влажность {hum}%, восход: {sunrise}, закат: {sunset} *** Завтра: {temp_tomorrow}, {status_tomorrow}'
         except Exception as ex:
-            LOGGER.error(ex)
-            mes_weather = 'Ошибка получения данных о погоде'
+            LOGGER.error('Ошибка получения данных о погоде\n %s', ex, exc_info=True)
+            return
 
         db.db_messages.create_message_maildrop(id_maildrop_type, mes_weather)
 
@@ -168,8 +168,8 @@ def job_maildrop_picker():
                 currency_mes = 'Нет данных о курсах валют'
 
         except Exception as ex:
-            LOGGER.error(ex)
-            currency_mes = 'Ошибка получения курсов валют'
+            LOGGER.error('Ошибка получения курсов валют\n %s', ex, exc_info=True)
+            return
 
         db.db_messages.create_message_maildrop(id_maildrop_type, currency_mes)
 
