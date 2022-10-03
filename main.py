@@ -9,7 +9,7 @@ import time
 
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, Path
 from fastapi.responses import FileResponse, HTMLResponse
 from pyowm import OWM
 from pyowm.utils import timestamps
@@ -17,9 +17,9 @@ from pyowm.utils.config import get_default_config
 
 import config
 import db
-from charset_encoder import CharsetEncoder
 from models.model_messages import MAILDROP_TYPES
 from models.model_pagers import Baudrate, Codepage, Transmitter
+from utils.charset_encoder import CharsetEncoder
 
 app = FastAPI()
 scheduler = BackgroundScheduler()
@@ -41,6 +41,11 @@ log_handler = loghandlers.RotatingFileHandler(
 log_handler.setLevel(logging.INFO)
 log_handler.setFormatter(formatter)
 LOGGER.addHandler(log_handler)
+
+
+@app.get("/capcode_to_frame/{capcode}")
+def capcode_to_frame(capcode: int = Path(ge=1, le=9999999)):
+    return {"frame_number": capcode % 8}
 
 
 @app.get("/to_admin", response_class=FileResponse)
