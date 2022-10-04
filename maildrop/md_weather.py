@@ -26,6 +26,9 @@ def make_forecast():
             config_dict = get_default_config()
             config_dict['language'] = 'ru'
             config_dict['connection'] = {
+                "use_ssl": True,
+                "verify_ssl_certs": True,
+                "use_proxy": False,
                 "timeout_secs": 30,
                 "max_retries": 3,
             }
