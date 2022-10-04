@@ -1,3 +1,4 @@
+"""Кодировка символов для пейджера"""
 from transliterate import translit
 
 from models.model_pagers import CODEPAGES

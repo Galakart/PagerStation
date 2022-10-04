@@ -18,12 +18,10 @@ from pyowm.utils.config import get_default_config
 import config
 import db
 from models.model_messages import MAILDROP_TYPES
-from models.model_pagers import Baudrate, Codepage, Transmitter
-from utils.charset_encoder import CharsetEncoder
+from pocsag_sender import sender
 
 app = FastAPI()
 scheduler = BackgroundScheduler()
-charset_encoder = CharsetEncoder()
 
 
 if not os.path.exists('logs'):
@@ -87,30 +85,7 @@ def to_admin_form_action(mes_text=Form()):
 
 @scheduler.scheduled_job('interval', id='do_job_pocsag_sender', seconds=5, misfire_grace_time=900)
 def job_pocsag_sender():
-    unsent_messages_private_tuple = db.db_messages.get_unsent_messages_private()
-    if unsent_messages_private_tuple:
-        for unsent_message_private_item in unsent_messages_private_tuple:
-            pager_item = db.db_pagers.get_pager(unsent_message_private_item.id_pager)
-            transmitter_item = db.db_classifiers.find_classifier_object(Transmitter, pager_item.id_transmitter)
-            baudrate_item = db.db_classifiers.find_classifier_object(Baudrate, transmitter_item.id_baudrate)
-            codepage_item = db.db_classifiers.find_classifier_object(Codepage, pager_item.id_codepage)
-            message_to_air(pager_item.capcode, pager_item.id_fbit, transmitter_item.freq,
-                           baudrate_item.name, codepage_item.id, unsent_message_private_item.message)
-            db.db_messages.mark_message_private_sent(unsent_message_private_item.id)
-
-    unsent_messages_maildrop_tuple = db.db_messages.get_unsent_messages_maildrop()
-    if unsent_messages_maildrop_tuple:
-        for unsent_message_maildrop_item in unsent_messages_maildrop_tuple:
-            maildrop_channels_tuple = db.db_messages.get_maildrop_channels_by_type(
-                unsent_message_maildrop_item.id_maildrop_type)
-            for maildrop_channel_item in maildrop_channels_tuple:
-                transmitter_item = db.db_classifiers.find_classifier_object(
-                    Transmitter, maildrop_channel_item.id_transmitter)
-                baudrate_item = db.db_classifiers.find_classifier_object(Baudrate, transmitter_item.id_baudrate)
-                codepage_item = db.db_classifiers.find_classifier_object(Codepage, maildrop_channel_item.id_codepage)
-                message_to_air(maildrop_channel_item.capcode, maildrop_channel_item.id_fbit,
-                               transmitter_item.freq, baudrate_item.name, codepage_item.id, unsent_message_maildrop_item.message)
-                db.db_messages.mark_message_maildrop_sent(unsent_message_maildrop_item.id)
+    sender.send_messages()
 
 
 @scheduler.scheduled_job('interval', id='do_job_maildrop_picker', seconds=60, misfire_grace_time=900)
@@ -128,6 +103,10 @@ def job_maildrop_picker():
         try:
             config_dict = get_default_config()
             config_dict['language'] = 'ru'
+            config_dict['connection'] = {
+                "timeout_secs": 30,
+                "max_retries": 3,
+            }
             owm = OWM(config.OWM_TOKEN, config_dict)
             mgr = owm.weather_manager()
             w = mgr.weather_at_place(config.OWM_CITY).weather
@@ -181,27 +160,6 @@ def job_maildrop_picker():
 
 scheduler.start()
 
-
-def message_to_air(capcode: int, fbit: int, freq: int, baudrate: int, id_codepage: int, message: str) -> bool:
-    """Отправляет сообщение в эфир
-
-    Args:
-        capcode (int): капкод
-        fbit (int): id источника
-        freq (int): частота в Гц
-        baudrate (int): id скорости
-        id_codepage (int): id кодировки текста
-        message (str): сообщение
-
-    Returns:
-        bool: успех
-    """
-    capcode = f'{capcode:07d}'
-    message_text = charset_encoder.encode_message(message, id_codepage)
-    if not os.path.exists('./pocsag'):
-        return False
-    os.system(f'echo "{capcode}:{message_text}" | sudo ./pocsag -f "{freq}" -b {fbit} -r {baudrate} -t 1')
-    return True
 
 # to run manually, exec:
 # uvicorn main:app --reload --host 0.0.0.0 --port 8092
