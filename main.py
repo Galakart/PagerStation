@@ -1,23 +1,15 @@
 """Main module"""
 #!venv/bin/python
-
-import datetime
 import logging
 import logging.handlers as loghandlers
 import os
-import time
 
-import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI, Form, Path
 from fastapi.responses import FileResponse, HTMLResponse
-from pyowm import OWM
-from pyowm.utils import timestamps
-from pyowm.utils.config import get_default_config
 
-import config
 import db
-from models.model_messages import MAILDROP_TYPES
+from maildrop import fetcher
 from pocsag_sender import sender
 
 app = FastAPI()
@@ -88,78 +80,12 @@ def job_pocsag_sender():
     sender.send_messages()
 
 
-@scheduler.scheduled_job('interval', id='do_job_maildrop_picker', seconds=60, misfire_grace_time=900)
-def job_maildrop_picker():
-    today_datetime = datetime.datetime.now()
-
-    # Погода
-    id_maildrop_type = MAILDROP_TYPES['weather']
-    last_sent_message = db.db_messages.get_last_sent_maildrop_by_type(id_maildrop_type)
-    if last_sent_message:
-        delta_dates = today_datetime - last_sent_message.date_create
-        delta_hours = divmod(delta_dates.total_seconds(), 3600)[0]
-
-    if not last_sent_message or (today_datetime.hour in (7, 14, 21) and today_datetime.minute == 0) or delta_hours > 24:
-        try:
-            config_dict = get_default_config()
-            config_dict['language'] = 'ru'
-            config_dict['connection'] = {
-                "timeout_secs": 30,
-                "max_retries": 3,
-            }
-            owm = OWM(config.OWM_TOKEN, config_dict)
-            mgr = owm.weather_manager()
-            w = mgr.weather_at_place(config.OWM_CITY).weather
-
-            temp = round(w.temperature('celsius')['temp'])
-            if temp > 0:
-                temp = f'+{temp}'
-            status = w.detailed_status
-            hum = w.humidity
-            sunrise = time.strftime("%H:%M", time.localtime(w.sunrise_time(timeformat='unix')))
-            sunset = time.strftime("%H:%M", time.localtime(w.sunset_time(timeformat='unix')))
-
-            owm_forecast_tomorrow = mgr.forecast_at_place(config.OWM_CITY, '3h').get_weather_at(timestamps.tomorrow())
-            temp_tomorrow = round(owm_forecast_tomorrow.temperature('celsius')['temp'])
-            if temp_tomorrow > 0:
-                temp_tomorrow = f'+{temp_tomorrow}'
-            status_tomorrow = owm_forecast_tomorrow.detailed_status
-
-            mes_weather = f'Погода. Сейчас: {temp}, {status}, влажность {hum}%, восход: {sunrise}, закат: {sunset} *** Завтра: {temp_tomorrow}, {status_tomorrow}'
-        except Exception as ex:
-            LOGGER.error('Ошибка получения данных о погоде\n %s', ex, exc_info=True)
-            return
-
-        db.db_messages.create_message_maildrop(id_maildrop_type, mes_weather)
-
-    # Курс валют
-    id_maildrop_type = MAILDROP_TYPES['currency']
-    last_sent_message = db.db_messages.get_last_sent_maildrop_by_type(id_maildrop_type)
-    if last_sent_message:
-        delta_dates = today_datetime - last_sent_message.date_create
-        delta_hours = divmod(delta_dates.total_seconds(), 3600)[0]
-
-    if not last_sent_message or (today_datetime.hour == 7 and today_datetime.minute == 0) or delta_hours > 24:
-        try:
-            response_ping = requests.get('https://api.coingate.com/v2/ping')
-            if int(response_ping.status_code) == 200:
-                cur_usd = requests.get('https://api.coingate.com/v2/rates/merchant/USD/RUB').text
-                cur_eur = requests.get('https://api.coingate.com/v2/rates/merchant/EUR/RUB').text
-                cur_btc = requests.get('https://api.coingate.com/v2/rates/merchant/BTC/RUB').text
-
-                currency_mes = f'Курс валют. Доллар: {cur_usd} руб. Евро: {cur_eur} руб. Биткоин: {cur_btc} руб.'
-            else:
-                currency_mes = 'Нет данных о курсах валют'
-
-        except Exception as ex:
-            LOGGER.error('Ошибка получения курсов валют\n %s', ex, exc_info=True)
-            return
-
-        db.db_messages.create_message_maildrop(id_maildrop_type, currency_mes)
+@scheduler.scheduled_job('interval', id='do_job_maildrop_fetcher', seconds=60, misfire_grace_time=900)
+def job_maildrop_fetcher():
+    fetcher.pull_data()
 
 
 scheduler.start()
-
 
 # to run manually, exec:
 # uvicorn main:app --reload --host 0.0.0.0 --port 8092
