@@ -6,9 +6,10 @@
     ],
     "python.formatting.provider": "autopep8",
     "python.formatting.autopep8Args": [
-        "--max-line-length=120"
+        "--ignore=E501" // disable automatic line-wrap
     ],
     "editor.rulers": [
         120,
-    ]
+    ],
+    // "python.analysis.typeCheckingMode": "basic"
 }
