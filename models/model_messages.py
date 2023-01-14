@@ -2,7 +2,7 @@
 import datetime
 
 from sqlalchemy import (BigInteger, Boolean, Column, DateTime, ForeignKey,
-                        Integer, String)
+                        Integer, String, Text)
 
 from models.base import Base
 
@@ -56,3 +56,13 @@ class MessageMailDrop(Base):
     message = Column(String(950), nullable=False)
     sent = Column(Boolean, nullable=False, default=False)
     date_create = Column(DateTime, nullable=False, default=datetime.datetime.now)
+
+
+class RssFeed(Base):
+    __tablename__ = 'rss_feeds'
+    __table_args__ = {"comment": "RSS-ленты. "}
+
+    id = Column(BigInteger, primary_key=True)
+    id_maildrop_type = Column(Integer, ForeignKey('n_maildrop_types.id'), nullable=False, unique=True)
+    feed_link = Column(Text, nullable=False)
+    datetime_create = Column(DateTime, nullable=False, default=datetime.datetime.now)

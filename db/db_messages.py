@@ -1,9 +1,9 @@
 """Операции с пейджинговыми сообщениями"""
-from models.model_messages import (MailDropChannels, MessageMailDrop,
-                                 MessagePrivate)
 from sqlalchemy import desc
 
 from db.connection import Session
+from models.model_messages import (MailDropChannels, MessageMailDrop,
+                                   MessagePrivate, RssFeed)
 
 # TODO у MessagePrivate и MessageMailDrop объединить похожие методы
 
@@ -82,5 +82,13 @@ def get_last_sent_maildrop_by_type(id_maildrop_type: int) -> MessageMailDrop:
     session = Session()
     value = session.query(MessageMailDrop).filter(MessageMailDrop.id_maildrop_type ==
                                                   id_maildrop_type).order_by(desc(MessageMailDrop.id)).first()
+    session.close()
+    return value
+
+
+def get_rss_feed_by_maildrop_type(id_maildrop_type: int) -> RssFeed:
+    """Возвращает RSS-ленту, связанную с этим id_maildrop_type """
+    session = Session()
+    value = session.query(RssFeed).filter(RssFeed.id_maildrop_type == id_maildrop_type).first()
     session.close()
     return value
