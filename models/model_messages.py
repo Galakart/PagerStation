@@ -66,3 +66,11 @@ class RssFeed(Base):
     id_maildrop_type = Column(Integer, ForeignKey('n_maildrop_types.id'), nullable=False, unique=True)
     feed_link = Column(Text, nullable=False)
     datetime_create = Column(DateTime, nullable=False, default=datetime.datetime.now)
+
+
+class StrictsIPaddress(Base):
+    __tablename__ = 'stricts_ipaddresses'
+    __table_args__ = {"comment": "IP адреса для ограничений на количество прямых сообщений"}
+
+    ip_address = Column(String(16), primary_key=True)
+    last_send = Column(DateTime, nullable=False, default=datetime.datetime.now, comment='Дата-время последней прямой отправки')

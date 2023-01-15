@@ -1,9 +1,11 @@
 """Операции с пейджинговыми сообщениями"""
+import datetime
+
 from sqlalchemy import desc
 
 from db.connection import Session
 from models.model_messages import (MailDropChannels, MessageMailDrop,
-                                   MessagePrivate, RssFeed)
+                                   MessagePrivate, RssFeed, StrictsIPaddress)
 
 # TODO у MessagePrivate и MessageMailDrop объединить похожие методы
 
@@ -92,3 +94,27 @@ def get_rss_feed_by_maildrop_type(id_maildrop_type: int) -> RssFeed:
     value = session.query(RssFeed).filter(RssFeed.id_maildrop_type == id_maildrop_type).first()
     session.close()
     return value
+
+
+def get_stricts_ipaddress(ip_address: str) -> StrictsIPaddress:
+    """Возвращает объект ip-адреса ограничений, если такой есть в БД"""
+    session = Session()
+    value = session.query(StrictsIPaddress).get(ip_address)
+    session.close()
+    return value
+
+
+def create_or_update_stricts_ipaddress(ip_address: str) -> bool:
+    session = Session()
+    ipaddress_item = session.query(StrictsIPaddress).get(ip_address)
+    if ipaddress_item:
+        ipaddress_item.last_send = datetime.datetime.now()
+    else:
+        ipaddress_item = StrictsIPaddress(
+            ip_address=ip_address,
+            last_send=datetime.datetime.now()
+        )
+    session.add(ipaddress_item)
+    session.commit()
+    session.close()
+    return True

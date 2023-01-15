@@ -1,11 +1,12 @@
 """Main module"""
 #!venv/bin/python
+import datetime
 import logging
 import logging.handlers as loghandlers
 import os
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from fastapi import FastAPI, Form, Path
+from fastapi import FastAPI, Form, Path, Request
 from fastapi.responses import FileResponse, HTMLResponse
 
 import db
@@ -44,11 +45,21 @@ def msg_for_admin_form():
 
 
 @app.post("/to_admin_form_action", response_class=HTMLResponse)
-def to_admin_form_action(mes_text=Form()):
+def to_admin_form_action(request: Request, mes_text=Form()):
+    client_ip = request.client.host
     if not mes_text:
         return """
             <CENTER>
                 <p><b>Введите сообщение!!!</b></p>
+                <a href="./to_admin">назад</a>
+            </CENTER>
+            """
+
+    stricts_ipaddress_item = db.db_messages.get_stricts_ipaddress(client_ip)
+    if stricts_ipaddress_item and stricts_ipaddress_item.last_send > datetime.datetime.now() - datetime.timedelta(minutes=1):
+        return """
+            <CENTER>
+                <p><b>Установлено ограничение на 1 сообщение в минуту</b></p>
                 <a href="./to_admin">назад</a>
             </CENTER>
             """
@@ -67,6 +78,7 @@ def to_admin_form_action(mes_text=Form()):
             </CENTER>
             """
 
+    db.db_messages.create_or_update_stricts_ipaddress(client_ip)
     return """
             <CENTER>
                 <p><b>Сообщение отправлено</b></p>
