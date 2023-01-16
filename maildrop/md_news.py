@@ -17,7 +17,7 @@ def make_news():
         delta_dates = today_datetime - last_sent_message.date_create
         delta_hours = divmod(delta_dates.total_seconds(), 3600)[0]
 
-    if not last_sent_message or (today_datetime.hour == 7 and today_datetime.minute == 0) or (today_datetime.hour >= 7 and delta_hours >= 3):
+    if not last_sent_message or (today_datetime.hour == 7 and today_datetime.minute == 0) or (today_datetime.hour >= 7 and delta_hours >= 6):
         rss_feed_item = db.db_messages.get_rss_feed_by_maildrop_type(id_maildrop_type)
         if rss_feed_item:
             maildrop_text = rss_feeder.get_rss_text(rss_feed_item)

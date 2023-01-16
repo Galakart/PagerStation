@@ -20,7 +20,7 @@ def msg_for_admin_form():
 
 @router.post("/to_admin_form_action", response_class=HTMLResponse)
 def to_admin_form_action(request: Request, mes_text=Form()):
-    client_ip = request.client.host
+    client_ip = request.client.host if request.client else None
     if not mes_text:
         return """
             <CENTER>
