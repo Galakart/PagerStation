@@ -1,50 +1,4 @@
 
-alembic init alembic
-
-alembic revision --autogenerate -m 'comment'
-
-alembic upgrade head
-
-alembic history
-
-alembic downgrade -1
-
-
-
-
-nginx
-
-server {
-listen 80;
-
-location / {
-include proxy_params;
-proxy_pass http://unix:/home/pi/services/pagerstation/pagerstation.sock;
-}
-}
-
-
-service
-
-[Unit]
-Description=PagerStation service
-After=network.target
-
-[Service]
-User=root
-Group=www-data
-WorkingDirectory=/home/pi/services/pagerstation
-ExecStart=/home/pi/services/pagerstation/venv/bin/gunicorn main:app
-
-[Install]
-WantedBy=multi-user.target
-
-
-
-
-
-
-
 # Pager Station
 
 ![pager_main](docs/img/pager_main.png)
@@ -62,27 +16,28 @@ WantedBy=multi-user.target
 ## Про предыдущую версию
 Предыдущая версия, основанная на Django+DRF+Celery, теперь заархивирована и находится в [соответствующей ветке](https://github.com/Galakart/PagerStation/tree/django-drf-celery "соответствующей ветке").
 
-Данная версия, более облегчённая, основана на Flask-RESTful с добавлением SQLAlchemy+Alembic, а также APScheduler как планировщик.
-
-TODO - ниже процесс установки от старой версии
-
-
-
+Данная версия, более облегчённая, основана на Fastapi.
 
 ## Что это такое
-Простым языком: это программа (веб-приложение, которое выглядит как сайт), с помощью которой вы сможете оживить свой старый пейджер, который уже больше 20-ти лет валяется без дела, и отправлять на него сообщения.
+Простым языком: это программа (веб-приложение), с помощью которой вы сможете оживить свой старый пейджер, который уже давно валяется без дела, и отправлять на него сообщения.
 
-Для программистов: это обёртка (REST-бэкенд) над замечательной программой rpitx, у которой, помимо всего прочего, есть возможность отправки в эфир сообщений по пейджинговому протоколу POCSAG. В качестве передатчика используется Raspberry Pi, на неё же и устанавливается весь сервис.
+Для программистов: это обёртка (REST-бэкенд) над замечательной программой **RPITX**, у которой, помимо всего прочего, есть возможность отправки в эфир сообщений по пейджинговому протоколу POCSAG. В качестве передатчика используется Raspberry Pi, на неё же и устанавливается весь сервис.
 
 ## Список возможностей
 - отправка на пейджер личных сообщений;
-- периодический сбор из интернета и отправка новостных сообщений;
+- периодический сбор из интернета и отправка новостных сообщений (погода, курс валют, или заголовки любых RSS-лент);
 - REST-API для отправки сообщений через GET и POST запросы, или управления из своих сервисов (из сторонних программ, мобильных приложений, умных колонок, итд);
-- минимальный веб-интерфейс для отправки сообщений;
-- веб-панель администратора для настроек;
+- <details>
+  <summary>TODO</summary>
+  - минимальный веб-интерфейс для отправки сообщений;
+  <br />  
+  - веб-панель администратора для настроек;
+</details>
 
 Поддерживаются пейджеры модели **Motorola Advisor** (как на картинке в начале), так как по сути только он в наше время поддаётся перепрошивке (ну и ещё у него самый брутальный и узнаваемый вид, конечно же).  
 Работа с другими пейджерами возможна, только при условии что известны их частота и капкод, по этому принципу был успешно опробован двухстрочный пейджер Navigator.
+
+Дальность действия Raspberry Pi как передатчика (на скорости POCSAG 512) составляет примерно от 100 до 900 метров (сильно зависит от перекрытия стенами и домами).
 
 ## Необходимое железо
 - собственно, сам пейджер Motorola Advisor, купленый на Авито во вменяемом состоянии;
@@ -96,9 +51,11 @@ TODO - ниже процесс установки от старой версии
 
 ![rpi_gpio](docs/img/rpi_gpio.png)
 
+Автор не особо силён в антенностроении, но эксперименты показали, что нет особой разницы, подключать кусок провода, или нормальную вертикальную жёсткую антенну - дальность действия будет примерно одинаковой. Длина антенны тут тоже особой роли не играет (конечно, слишком короткую не нужно делать, но разницы между 20см и 40см практически нет)
+
 С подключением закончили, переходим к программной части.
 
-Если мы ставим всё с нуля, то раскатываем на карту памяти образ свежей Raspberry Pi OS (она же Raspbian). Подключаемся по SSH в консоль и первым делом запустим настройки.
+Если мы ставим всё с нуля, то раскатываем на карту памяти образ свежей Raspberry Pi OS (она же в прошлом Raspbian). Подключаемся по SSH в консоль и первым делом запустим настройки.
 ```bash
 sudo raspi-config
 ```
@@ -128,10 +85,9 @@ sudo apt install language-pack-ru
 sudo update-locale LANG=ru_RU.UTF-8
 ```
 
-Возможно в будущем нужно будет всё нижеприведённое перенести в скрипт установки. Но пока что только вручную.  
 Устанавливаем всё необходимое ПО:
 ```bash
-sudo apt install git python3-venv python3-dev mariadb-server mariadb-client redis-server memcached nginx
+sudo apt install git python3-venv mariadb-server mariadb-client nginx
 ```
 
 В домашней папке создаём ещё одну, в которой будем размещать этот проект. Назовём папку например, services, и зайдём в неё:
@@ -143,7 +99,7 @@ cd services
 
 Клонируем себе этот репозиторий и заходим внутрь папки:
 ```bash
-git clone https://github.com/Galakart/PagerStation.git
+git clone https://github.com/Galakart/PagerStation.git pagerstation
 cd pagerstation
 ```
 
@@ -188,41 +144,18 @@ sudo mysql_secure_installation
 - на вопрос "установить пароль root?" (set root password) - говорим no, мы всё равно не будем использовать учётку рута;
 - на все остальные вопросы отвечаем yes;
 
-Далее нам нужно создать пользователя БД. Это будет в зависимости от того, нужен ли будет нам внешний доступ к базе (возможность подключаться к ней этим пользователем с другого компьютера)
-
-------------
-
-**1. Если доступ извне не нужен:**
-Просто создадим юзера БД, допустим с именем admin и паролем password:
+Далее создадим юзера БД, допустим с именем admin и паролем password:
 ```bash
 sudo mariadb
-GRANT ALL ON *.* TO 'admin'@'localhost' IDENTIFIED BY 'password' WITH GRANT OPTION;
+CREATE USER 'admin'@'localhost' IDENTIFIED BY 'password';
+GRANT ALL ON *.* TO 'admin'@'localhost' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 exit
 ```
 
-**2. В случае если нужен доступ извне:**
+А также создадим в MariaDB новую базу данных, с любым именем и сопоставлением **utf8mb4_general_ci**
 
-Создадим юзера по другому:
-```bash
-sudo mariadb
-GRANT ALL ON *.* TO 'admin'@'%' IDENTIFIED BY 'password' WITH GRANT OPTION;
-FLUSH PRIVILEGES;
-exit
-```
-
-А также поменяем конфиг
-```bash
-sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
-bind-address 0.0.0.0 # поменяем только этот параметр
-sudo service mariadb restart
-```
-
-С настройкой БД закончили.
-
-------------
-
-В папке с проектом создадим виртуальное окружение:
+В папке с программой создадим виртуальное окружение и активируем его:
 ```bash
 python3 -m venv venv
 source venv/bin/activate
@@ -230,64 +163,20 @@ source venv/bin/activate
 
 Убедимся что мы в окружении - зелёное **venv** слева от командной строки (проверять в дальнейшем каждый раз, когда задействуем всё что связано с python из командной строки).
 
-Скопируем файл системных переменных и дадим атрибут:
+Скопируем и отредактируем файл настроек:
 ```bash
-cp .env_example .env
-chmod 600 .env
+cp config.example.py config.py
+nano config.py
 ```
 
-Заодно сгенерируем и скопируем себе новый SECRET_KEY
-```bash
-python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
-```
-
-Отредактируем файл настроек (обращаем внимание, что внутри файла, до и после знака **равно** не должно быть пробелов и кавычек):
-```bash
-nano .env
-```
-
-- SECRET_KEY - сюда вставляем только что сгенерированый секретный ключ;
 - DB_NAME, DB_HOST, DB_USER, DB_PASS - параметры доступа к БД;
-- TOKEN_OWM - токен OpenWeatherMap (завести у них на сайте учётку с бесплатным тарифом, и создать токен в личном кабинете);
+- OWM_TOKEN - токен OpenWeatherMap, который необходимо получить у них на сайте, для того чтобы работала отправка прогноза погоды;
+- OWM_CITY - соответственно, город для OpenWeatherMap;
 
-Скопируем файл основных локальных настроек:
-```bash
-cp pagerstation/settings_local.example.py pagerstation/settings_local.py
-nano pagerstation/settings_local.py
-```
-
-В этом файле можно переопределить любые параметры из основного файла настроек (settings.py), чтобы он оставался неизменным.  
-В частности, нужно вписать следующие параметры под свои предпочтения, в том же формате, как в основном файле:
-
-- DEBUG
-- ALLOWED_HOSTS
-- LANGUAGE_CODE
-- TIME_ZONE
-- WEATHER_CITY - город для прогноза погоды (просто по английски, можно через запятую уточнить страну, например "Moscow" или "Berlin,DE")
-
-Скопируем конфиг для Celery и поправим его:
-```bash
-cp celery.example.conf celery.conf
-nano celery.conf
-CELERY_BIN="/home/pi/services/pagerstation/venv/bin/celery" # поменять этот параметр под свой путь
-```
-
-Установим зависимости, проведём миграции БД, соберём статику, создадим суперадминистратора:
+Установим зависимости, проведём миграции БД:
 ```bash
 pip install -r requirements.txt
-python manage.py migrate
-python manage.py collectstatic
-python manage.py createsuperuser
-```
-
-По желанию, можно проверить как работает сервер Django:
-```bash
-python manage.py runserver 0:8090
-```
-
-И планировщик Celery:
-```bash
-celery -A pagerstation worker -l info -B
+alembic upgrade head
 ```
 
 **Переходим к настройке Nginx.**  
@@ -301,16 +190,10 @@ sudo nano /etc/nginx/sites-available/pagerstation
 ```bash
 server {
     listen 80;
-    server_name ;
-
-    location = /favicon.ico { access_log off; log_not_found off; }
-    location /static/ {
-    root /home/pi/services/pagerstation;
-    }
 
     location / {
-    include proxy_params;
-    proxy_pass http://unix:/home/pi/services/pagerstation/pagerstation.sock;
+      include proxy_params;
+      proxy_pass http://unix:/home/pi/services/pagerstation/pagerstation.sock;
     }
 }
 ```
@@ -322,121 +205,28 @@ sudo nginx -t
 sudo systemctl restart nginx
 ```
 
-**Создадим конфиг для Gunicorn:**
+**Создадим конфиг для запуска самой программы:**
 ```bash
-sudo nano /etc/systemd/system/pagerstation_gunicorn.service
+sudo nano /etc/systemd/system/pagerstation.service
 ```
 
 Вставим текст:
 ```bash
 [Unit]
-Description=gunicorn daemon
+Description=PagerStation service
 After=network.target
-PartOf=pagerstation.service
 
 [Service]
 User=root
 Group=www-data
 WorkingDirectory=/home/pi/services/pagerstation
-ExecStart=/home/pi/services/pagerstation/venv/bin/gunicorn --access-logfile - --workers 2 --bind unix:/home/pi/services/pagerstation/pagerstation.sock pagerstation.wsgi:application
+ExecStart=/home/pi/services/pagerstation/venv/bin/gunicorn main:app
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-**Конфиг для воркера Celery:**
-```bash
-sudo nano /etc/systemd/system/pagerstation_celery_worker.service
-```
-
-Вставим текст:
-```bash
-[Unit]
-Description= PagerStation Celery Worker Service
-After=network.target
-PartOf=pagerstation.service
-
-[Service]
-Type=forking
-User=pi
-Group=pi
-EnvironmentFile=/home/pi/services/pagerstation/celery.conf
-WorkingDirectory=/home/pi/services/pagerstation
-RuntimeDirectory=celery
-ExecStart=/bin/sh -c '${CELERY_BIN} -A $CELERY_APP multi start $CELERYD_NODES \
-    --pidfile=${CELERYD_PID_FILE} --logfile=${CELERYD_LOG_FILE} \
-    --loglevel="${CELERYD_LOG_LEVEL}" $CELERYD_OPTS'
-ExecStop=/bin/sh -c '${CELERY_BIN} multi stopwait $CELERYD_NODES \
-    --pidfile=${CELERYD_PID_FILE} --logfile=${CELERYD_LOG_FILE} \
-    --loglevel="${CELERYD_LOG_LEVEL}"'
-ExecReload=/bin/sh -c '${CELERY_BIN} -A $CELERY_APP multi restart $CELERYD_NODES \
-    --pidfile=${CELERYD_PID_FILE} --logfile=${CELERYD_LOG_FILE} \
-    --loglevel="${CELERYD_LOG_LEVEL}" $CELERYD_OPTS'
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-**Конфиг для планировщика Celery:**
-```bash
-sudo nano /etc/systemd/system/pagerstation_celery_beat.service
-```
-
-Вставить текст:
-```bash
-[Unit]
-Description=PagerStation Celery Beat Service
-After=network.target
-PartOf=pagerstation.service
-
-[Service]
-Type=simple
-User=pi
-Group=pi
-EnvironmentFile=/home/pi/services/pagerstation/celery.conf
-WorkingDirectory=/home/pi/services/pagerstation
-RuntimeDirectory=celery
-ExecStart=/bin/sh -c '${CELERY_BIN} -A ${CELERY_APP} beat  \
-    --pidfile=${CELERYBEAT_PID_FILE} \
-    --logfile=${CELERYBEAT_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL}'
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-**И один конфиг, чтобы править всеми:**
-```bash
-sudo nano /etc/systemd/system/pagerstation.service
-```
-
-Вставить текст:
-```bash
-[Unit]
-Description=PagerStation Group Service
-Wants=pagerstation_gunicorn.service
-Wants=pagerstation_celery_worker.service
-Wants=pagerstation_celery_beat.service
-
-[Service]
-Type=oneshot
-ExecStart=/bin/echo "Starting PagerStation instances"
-RemainAfterExit=yes
-StandardOutput=journal
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Создадим папки для логов:
-```bash
-sudo mkdir /var/log/celery
-sudo chown pi:pi /var/log/celery
-sudo chmod 0755 /var/log/celery
-```
-
-Обновим и поставим в автозапуск стартовые скрипты:
+Обновим и поставим в автозапуск:
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable pagerstation
@@ -466,11 +256,13 @@ sudo service pagerstation start
 
 Капкоды бывают трёх видов - личные, групповые, и новостные. Новостные и групповые капкоды во все пейджеры зашиваются одинаковые, чтобы одну посылку могли принять сразу все;  
 
-- **источник**. Число от 0 до 3, задаёт, условно говоря, подкатегорию капкода. Используется это по разному.
+- **источник**. Число от 0 до 3, передаётся в связке с капкодом, и задаёт, условно говоря, его подкатегорию.
 
-Касаемо личных сообщений, если у нас очень много абонентов (больше 9999999, и такое видимо бывало), то мы можем присвоить нескольким абонентам один капкод, но с разными источниками. Условно говоря, капкод 123456 и источник 0 - это абонентский номер 1111, а тот же капкод 123456 и источник 1 - это уже абонент 1112, принадлежащий другому человеку.
+Можно к примеру задать капкод 123456 и источник 0 - как абонентский номер 1111, а тот же капкод 123456 и источник 1 - как уже абонентский номер 1112, принадлежащий другому человеку.
 
-Касаемо новостных сообщений - используется для сортировки пейджером, так как новостные сообщения хранятся в памяти только последние, число источника указывает на ячейку, в которой будет свежая информация о конкретной новости (погода, курсы валют, итд);
+Ещё можно например зашить в пейджер, что сообщения принятые на капкод 123456 и источник 2 - будут приниматься с принудительным громким оповещением, независимо от настроек беззвучности пейджера.
+
+Касаемо новостных сообщений - используется для сортировки пейджером, так как новостные сообщения хранятся в памяти только последние, число источника указывает на ячейку памяти, в которой будет свежая информация о конкретной новости (погода, курсы валют, итд);
 
 - **кодировка текста**. Бывает латинская, русская, и смешанная ("Linguist", у такой только заглавные буквы);
 
@@ -556,7 +348,7 @@ ADVISOR.EXE
 
 ![advisor_exe_capcodes](docs/img/advisor_exe_capcodes.png)
 
-На первой странице мы видим в частности Serial # - серийный номер пейджера. Поменять нельзя, но можно сохранить куда-нибудь себе для аутентичности, в случае повреждения прошивки пейджер спросит новый серийный номер.
+На первой странице мы видим в частности Serial # - серийный номер пейджера. Поменять нельзя, но можно сохранить куда-нибудь себе для аутентичности, в случае повреждения прошивки пейджер спросит новый серийный номер. Кстати, этот же номер считывается со штрих-кода на задней крышке пейджера.
 
 Выставим **Coding Format** - оно же скорость передачи, по желанию, к примеру **POCSAG 1200**. 512 - медленнее, но стабильнее и больше радиус приёма. 1200 посередине. 2400 соответственно ровно наоборот.
 
@@ -578,12 +370,12 @@ ADVISOR.EXE
 А теперь, главное внимание, особо мозговыносящая вещь!
 Капкоды должны вручную задаваться не абы как, а должны правильно располагаться попарно в одинаковых фреймах (пачках передаваемых данных)! То есть, Code A и Code B должны располагаться в одном фрейме, Code C и Code D - во втором. Причём второй должен быть больше первого. Программа конечно предупредит, если что-то не так, но всё же знать надо. Нарушение этого приведёт к сокращению вдвое времени работы от батарейки - пейджеру придётся чаще просыпаться для проверки посылок.
 
-Как узнать номер фрейма? Тут нам поможет прилагающийся к проекту скрипт **capcode_to_frame.py**
-Вызываем его из командной строки с указанием предполагаемого капкода
-```bash
-python capcode_to_frame.py 503125
+Как узнать номер фрейма? Есть встроенный калькулятор, достаточно перейти по ссылке http://IP_RASPBERRY/capcode_to_frame/234, где 234 это номер предполагаемого капкода.
+
+В ответ он выдаст JSON с номером фрейма
 ```
-В ответ он выдаст номер фрейма - 5.
+{"frame_number":2}
+```
 
 Всего фреймов 8 (от 0 до 7). При увеличении капкода на 1, фрейм тоже увеличивается на 1, пока не дойдёт до 7, дальше отсчёт снова пойдёт с нуля. То есть к примеру, капкоды 525349 и 37 - относятся к 5-му фрейму, и их можно использовать в паре.  
 По тому же принципу делаем вторую пару капкодов, к примеру 191 и 199 - фрейм у них будет 7-ой, и он больше чем 5-ый.
@@ -641,8 +433,10 @@ python capcode_to_frame.py 503125
 
 В случае успешной прошивки пейджер перезагрузится, запищит, и на этом месте можно его отсоединять от компьютера, собирать обратно и переходить (запомнив конечно, что за номера мы в него внесли) к настройке собственно программы.
 
-## Первоначальная настройка
-
+## Первоначальная настройка (TODO)
+<details>
+  <summary>TODO</summary>
+  
 Заходим на IP-адрес нашей Raspberry Pi, в раздел администрирования:  
 http://192.168.1.123/admin/  
 Вводим логин/пароль, который создавали ранее командой createsuperuser.
@@ -679,7 +473,12 @@ http://192.168.1.123/admin/
 
 Вот и всё, настройка завершена, на пейджер будет приходить новостная рассылка, а мы теперь сможем отправлять сообщения на абонентский номер.
 
-## Примеры использования
+</details>
+
+## Примеры использования (TODO)
+<details>
+  <summary>TODO</summary>
+
 В качестве примера будем отправлять личное сообщение на абонентский номер.
 
 ##### 1. С помощью веб-интерфейса DRF
@@ -697,6 +496,8 @@ http://192.168.1.123/admin/
 curl -X POST http://192.168.1.123/api/privatemessages/ -H 'Content-Type: application/json' -d '{"subscriber_number":"1234","message":"Привет всем!"}'
 ```
 (соответственно, подставить свои IP-адрес, абонентский номер, текст сообщения)
+
+</details>
 
 ## Использованные источники
 
@@ -717,8 +518,6 @@ https://openweathermap.org/
 https://pyowm.readthedocs.io/en/latest/
 - сервис CoinGate - курсы валют:  
 https://developer.coingate.com/docs
-- сайт Meduza.io - новости:  
-https://meduza.io
 
 Поддержать автора  
 BTC: bc1q5aptd289qsvrtsf9t2z42udda5t70e7hc39sc2
