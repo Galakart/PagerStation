@@ -10,11 +10,12 @@ from models.model_messages import (MailDropChannels, MessageMailDrop,
 # TODO у MessagePrivate и MessageMailDrop объединить похожие методы
 
 
-def create_message_private(id_pager: int, message: str) -> bool:
+def create_message_private(id_pager: int, message: str, datetime_send_after: datetime.datetime = None) -> bool:
     session = Session()
     new_item = MessagePrivate(
         id_pager=id_pager,
-        message=message
+        message=message,
+        datetime_send_after=datetime_send_after,
     )
     session.add(new_item)
     session.commit()

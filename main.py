@@ -7,7 +7,7 @@ import os
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI
 
-from maildrop import fetcher
+from maildrop import fetcher_celebrations, fetcher_maildrop
 from pocsag_sender import sender
 from routers import router_direct
 
@@ -39,7 +39,12 @@ def job_pocsag_sender():
 
 @scheduler.scheduled_job('interval', id='do_job_maildrop_fetcher', seconds=60, misfire_grace_time=900)
 def job_maildrop_fetcher():
-    fetcher.pull_data()
+    fetcher_maildrop.make_data()
+
+
+@scheduler.scheduled_job('cron', id='do_job_celebrations_fetcher', hour=0, minute=0)
+def job_celebrations_fetcher():
+    fetcher_celebrations.make_data()
 
 
 scheduler.start()
