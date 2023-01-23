@@ -144,16 +144,15 @@ sudo mysql_secure_installation
 - на вопрос "установить пароль root?" (set root password) - говорим no, мы всё равно не будем использовать учётку рута;
 - на все остальные вопросы отвечаем yes;
 
-Далее создадим юзера БД, допустим с именем admin и паролем password:
+Далее создадим юзера БД, допустим с именем admin и паролем password, и новую БД для приложения:
 ```bash
 sudo mariadb
 CREATE USER 'admin'@'localhost' IDENTIFIED BY 'password';
 GRANT ALL ON *.* TO 'admin'@'localhost' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
+CREATE DATABASE pagerstation CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 exit
 ```
-
-А также создадим в MariaDB новую базу данных, с любым именем и сопоставлением **utf8mb4_general_ci**
 
 В папке с программой создадим виртуальное окружение и активируем его:
 ```bash

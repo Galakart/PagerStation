@@ -25,6 +25,7 @@ class MessagePrivate(Base):
     id_pager = Column(Integer, ForeignKey('pagers.id'), nullable=False)
     message = Column(String(950), nullable=False)
     sent = Column(Boolean, nullable=False, default=False)
+    datetime_send_after = Column(DateTime, comment='Отправить после указанной даты-времени')
     date_create = Column(DateTime, nullable=False, default=datetime.datetime.now)
 
 
