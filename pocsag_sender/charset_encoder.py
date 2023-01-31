@@ -1,5 +1,7 @@
 """Кодировка символов для пейджера"""
 from transliterate import translit
+from transliterate.base import TranslitLanguagePack, registry
+from transliterate.discover import autodiscover
 
 from models.model_pagers import CODEPAGES
 
@@ -118,25 +120,48 @@ SYMBOLS_LINGUIST = {
 }
 
 
+class RuExtendedLanguagePack(TranslitLanguagePack):
+    language_code = "ru_ext"
+    language_name = "RU Extended"
+
+    mapping = (
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        "абкдефгхийклмнопqрстуввxызАБКДЕФГХИЙКЛМНОПQРСТУВВXЫЗ",
+    )
+
+    pre_processor_mapping = {
+        "the": "зе", "The": "Зе", "THE": "ЗЕ",
+        "ech": "ех", "Ech": "Ех", "ECH": "ЕХ",
+        "chr": "хр", "Chr": "Хр", "CHR": "ХР",
+        "ch": "ч", "Ch": "Ч", "CH": "Ч",
+        "gy": "джи", "Gy": "Джи", "GY": "ДЖИ",
+        "q": "ку", "Q": "Ку",
+        "x": "кс", "X": "КС",
+    }
+
+
 class CharsetEncoder():
     def __init__(self):
-        pass
+        autodiscover()
+        registry.register(RuExtendedLanguagePack)
 
     def encode_message(self, message, id_codepage):
+        message = message.replace('«', '"').replace('»', '"').replace('&amp;', '&')
+
         # в эфир передаются только латинские буквы и спецсимволы (то есть по сути, весь набор lat),
         # так что так или иначе, независимо от заданной кодировки, нам нужно преобразовать её в набор lat
 
         if id_codepage == CODEPAGES['lat']:
             # набор уже lat, ничего преобразовывать не нужно, только если встречаются русские символы,
             # то транслитерируем их в латиницу. В конце проверим, не затесались ли символы, которых нету в наборе
-            lat_text = translit(message, 'ru', reversed=True)
+            lat_text = translit(message, 'ru_ext', reversed=True)
             result = self.check_allowed_symbols(lat_text)
 
         elif id_codepage == CODEPAGES['cyr']:
             # переведём все английские слова в русский транслит (так как из-за сопоставления таблиц перекодировок идёт
             # смена регистра, чтобы потом не наблюдать на пейджере что-то вроде тЕЦХНОЛОГЫ),
             # затем перекодируем в lat по словарю SYMBOLS_CYR
-            ru_text = translit(message, 'ru')
+            ru_text = translit(message, 'ru_ext')
             for cyr_symbol, lat_symbol in SYMBOLS_CYR.items():
                 ru_text = ru_text.replace(cyr_symbol, lat_symbol)
             result = self.check_allowed_symbols(ru_text)
