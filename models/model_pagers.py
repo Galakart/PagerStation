@@ -1,4 +1,6 @@
 """Модели пейджеров"""
+import enum
+
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
@@ -7,24 +9,24 @@ from models.model_users import user_pagers
 
 # pylint: disable=missing-class-docstring,too-few-public-methods
 
-BAUDRATES = {
-    '512': 1,
-    '1024': 2,
-    '2048': 3,
-}
 
-FBITS = {
-    '0': 0,
-    '1': 1,
-    '2': 2,
-    '3': 3,
-}
+class Baudrates(enum.IntEnum):
+    BAUD_512 = 1
+    BAUD_1024 = 2
+    BAUD_2048 = 3
 
-CODEPAGES = {
-    'lat': 1,
-    'cyr': 2,
-    'linguist': 3,
-}
+
+class Fbits(enum.IntEnum):
+    BIT_0 = 0
+    BIT_1 = 1
+    BIT_2 = 2
+    BIT_3 = 3
+
+
+class Codepages(enum.IntEnum):
+    LAT = 1
+    CYR = 2
+    LINGUIST = 3
 
 # TODO соотношения между моделями настроить, чтобы например из Pager перескочить на Transmitter
 

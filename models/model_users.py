@@ -1,4 +1,6 @@
 """Модели юзеров"""
+import enum
+
 from sqlalchemy import Column, Date, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
@@ -7,11 +9,11 @@ from models.base import Base
 # pylint: disable=missing-class-docstring,too-few-public-methods
 
 
-ROLES = {
-    'admin': 10,
-}
+class Roles(enum.IntEnum):
+    ADMIN = 10
 
 # TODO BigInteger и SmallInteger
+
 
 user_pagers = Table(
     "user_pagers",

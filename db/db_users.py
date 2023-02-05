@@ -4,7 +4,7 @@ import datetime
 from sqlalchemy.sql.expression import extract
 
 from db.connection import Session
-from models.model_users import ROLES, ServiceRole, User
+from models.model_users import Roles, ServiceRole, User
 
 # TODO в Users добавить поле active
 
@@ -13,7 +13,7 @@ def get_admins():
     """Все админы"""
     session = Session()
     values_tuple = session.query(User).join(ServiceRole, ServiceRole.id_user == User.id).filter(
-        ServiceRole.id_role == ROLES['admin']).all()  # TODO ... Users.active==1
+        ServiceRole.id_role == Roles.ADMIN.value).all()  # TODO ... Users.active==1
     session.close()
     return values_tuple
 

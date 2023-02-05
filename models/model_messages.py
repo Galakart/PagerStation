@@ -1,5 +1,6 @@
 """Модели сообщений"""
 import datetime
+import enum
 
 from sqlalchemy import (BigInteger, Boolean, Column, DateTime, ForeignKey,
                         Integer, String, Text)
@@ -9,12 +10,11 @@ from models.base import Base
 # pylint: disable=missing-class-docstring,too-few-public-methods
 
 
-MAILDROP_TYPES = {
-    'notification': 1,
-    'news': 2,
-    'weather': 3,
-    'currency': 4,
-}
+class MaildropTypes(enum.IntEnum):
+    NOTIFICATION = 1
+    NEWS = 2
+    WEATHER = 3
+    CURRENCY = 4
 
 
 class MessagePrivate(Base):
