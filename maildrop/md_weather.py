@@ -3,7 +3,6 @@ import logging
 import time
 
 from pyowm import OWM
-from pyowm.utils import timestamps
 from pyowm.utils.config import get_default_config
 
 import config
@@ -13,6 +12,10 @@ from models.model_messages import MAILDROP_TYPES
 from . import rss_feeder
 
 LOGGER = logging.getLogger('applog')
+
+HOUR_MORNING = 7
+HOUR_DAY = 14
+HOUR_EVENING = 21
 
 
 def make_forecast():
@@ -24,7 +27,7 @@ def make_forecast():
         delta_dates = today_datetime - last_sent_message.date_create
         delta_hours = divmod(delta_dates.total_seconds(), 3600)[0]
 
-    if not last_sent_message or (today_datetime.hour in (7, 14, 21) and today_datetime.minute == 0) or delta_hours > 24:
+    if not last_sent_message or (today_datetime.hour in (HOUR_MORNING, HOUR_DAY, HOUR_EVENING) and today_datetime.minute == 0) or delta_hours > 24:
         rss_feed_item = db.db_messages.get_rss_feed_by_maildrop_type(id_maildrop_type)
         if rss_feed_item:
             maildrop_text = rss_feeder.get_rss_text(rss_feed_item)
@@ -41,23 +44,41 @@ def make_forecast():
                 }
                 owm = OWM(config.OWM_TOKEN, config_dict)
                 mgr = owm.weather_manager()
-                w = mgr.weather_at_place(config.OWM_CITY).weather
+                one_call = mgr.one_call(lat=config.OWM_LATITUDE, lon=config.OWM_LONGITUDE)
 
-                temp = round(w.temperature('celsius')['temp'])
+                temp = round(one_call.current.temperature('celsius')['temp'])
                 if temp > 0:
                     temp = f'+{temp}'
-                status = w.detailed_status
-                hum = w.humidity
-                sunrise = time.strftime("%H:%M", time.localtime(w.sunrise_time(timeformat='unix')))
-                sunset = time.strftime("%H:%M", time.localtime(w.sunset_time(timeformat='unix')))
+                status = one_call.current.detailed_status
+                hum = one_call.current.humidity
+                pressure_dict = one_call.current.barometric_pressure()
+                pressure = round(pressure_dict['press'] * 0.75) if pressure_dict else "???"
+                sunrise = time.strftime("%H:%M", time.localtime(one_call.current.sunrise_time(timeformat='unix')))
+                sunset = time.strftime("%H:%M", time.localtime(one_call.current.sunset_time(timeformat='unix')))
 
-                owm_forecast_tomorrow = mgr.forecast_at_place(config.OWM_CITY, '3h').get_weather_at(timestamps.tomorrow())
-                temp_tomorrow = round(owm_forecast_tomorrow.temperature('celsius')['temp'])
-                if temp_tomorrow > 0:
-                    temp_tomorrow = f'+{temp_tomorrow}'
-                status_tomorrow = owm_forecast_tomorrow.detailed_status
+                status_tomorrow = one_call.forecast_daily[1].detailed_status
+                temp_tomorrow_morn = round(one_call.forecast_daily[1].temperature('celsius')['morn'])
+                temp_tomorrow_day = round(one_call.forecast_daily[1].temperature('celsius')['day'])
 
-                maildrop_text = f'Погода. Сейчас: {temp}, {status}, влажность {hum}%, восход: {sunrise}, закат: {sunset} *** Завтра: {temp_tomorrow}, {status_tomorrow}'
+                maildrop_text = 'Погода. '
+                maildrop_text += f'Сейчас: {temp}, {status}, влажность {hum}%, давл. {pressure}мм.рт.ст., '
+                maildrop_text += f'восход: {sunrise}, закат: {sunset} *** '
+
+                if today_datetime.hour < HOUR_DAY:
+                    delta_day = HOUR_DAY - today_datetime.hour
+                    temp_day = round(one_call.forecast_hourly[delta_day].temperature('celsius')['temp'])
+                    status_day = one_call.forecast_hourly[delta_day].detailed_status
+                    maildrop_text += f'Днём: {temp_day}, {status_day} *** '
+                elif today_datetime.hour >= HOUR_DAY and today_datetime.hour < HOUR_EVENING:
+                    delta_eve = HOUR_EVENING - today_datetime.hour
+                    temp_eve = round(one_call.forecast_hourly[delta_eve].temperature('celsius')['temp'])
+                    status_eve = one_call.forecast_hourly[delta_eve].detailed_status
+                    maildrop_text += f'Вечером: {temp_eve}, {status_eve} *** '
+                else:
+                    temp_night = round(one_call.forecast_daily[0].temperature('celsius')['night'])
+                    maildrop_text += f'Ночью: {temp_night} *** '
+
+                maildrop_text += f'Завтра: {status_tomorrow}, утром {temp_tomorrow_morn}, днём {temp_tomorrow_day}'
             except Exception as ex:
                 LOGGER.error('Ошибка получения данных о погоде\n %s', ex, exc_info=True)
                 return

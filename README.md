@@ -178,6 +178,12 @@ pip install -r requirements.txt
 alembic upgrade head
 ```
 
+Не знаю как будет в будущем, но на текущий момент в пакете PyOWM есть баг с получением прогноза погоды. Нужно вручную подправить файл в виртуальном окружении: venv/lib/python3.10/site-packages/pyowm/weatherapi25/national_weather_alert.py
+```
+assert sender поменять на assert sender is not None
+assert description поменять на assert description is not None
+```
+
 **Переходим к настройке Nginx.**  
 Создадим конфиг, удалив при этом стандартный:
 ```bash
