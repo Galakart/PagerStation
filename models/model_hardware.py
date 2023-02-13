@@ -1,6 +1,7 @@
 """Модели пейджеров"""
 import enum
 
+from pydantic import BaseModel
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
@@ -65,6 +66,16 @@ class Transmitter(Base):
     id_baudrate = Column(Integer, ForeignKey('n_baudrates.id'), nullable=False)
 
 
+class TransmitterSchema(BaseModel):
+    id: int | None
+    name: str
+    freq: int
+    id_baudrate: int
+
+    class Config:
+        orm_mode = True
+
+
 class Pager(Base):
     __tablename__ = 'pagers'
     __table_args__ = {"comment": "Пейджеры"}
@@ -75,3 +86,14 @@ class Pager(Base):
     id_codepage = Column(Integer, ForeignKey('n_codepages.id'), nullable=False)
     id_transmitter = Column(Integer, ForeignKey('transmitters.id'), nullable=False)
     users = relationship('User', secondary=user_pagers, back_populates='pagers')
+
+
+class PagerSchema(BaseModel):
+    id: int | None
+    capcode: int
+    id_fbit: int
+    id_codepage: int
+    id_transmitter: int
+
+    class Config:
+        orm_mode = True

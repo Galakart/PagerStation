@@ -3,7 +3,7 @@ from transliterate import translit
 from transliterate.base import TranslitLanguagePack, registry
 from transliterate.discover import autodiscover
 
-from models.model_pagers import Codepages
+from models.model_hardware import Codepages
 
 ALLOWED_SYMBOLS = [
     ' ', '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/',

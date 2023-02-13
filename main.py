@@ -6,14 +6,23 @@ import os
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from maildrop import fetcher_celebrations, fetcher_maildrop
 from pocsag_sender import sender
-from routers import router_direct
+from routers import router_direct, router_hardware
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=True,
+)
 scheduler = BackgroundScheduler()
 app.include_router(router_direct.router)
+app.include_router(router_hardware.router)
 
 if not os.path.exists('logs'):
     os.makedirs('logs')

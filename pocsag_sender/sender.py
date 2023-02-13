@@ -3,8 +3,8 @@ import datetime
 import os
 
 import db
+from models.model_hardware import Baudrate, Codepage, Transmitter
 from models.model_messages import MessageMailDrop, MessagePrivate
-from models.model_pagers import Baudrate, Codepage, Transmitter
 from pocsag_sender.charset_encoder import CharsetEncoder
 
 charset_encoder = CharsetEncoder()
@@ -18,7 +18,7 @@ def send_messages() -> bool:
         unsent_message_private_item: MessagePrivate
         for unsent_message_private_item in unsent_messages_private_tuple:
             if not unsent_message_private_item.datetime_send_after or (today_datetime >= unsent_message_private_item.datetime_send_after):
-                pager_item = db.db_pagers.get_pager(unsent_message_private_item.id_pager)
+                pager_item = db.db_hardware.get_pager(unsent_message_private_item.id_pager)
                 transmitter_item = db.db_classifiers.find_classifier_object(Transmitter, pager_item.id_transmitter)
                 baudrate_item = db.db_classifiers.find_classifier_object(Baudrate, transmitter_item.id_baudrate)
                 codepage_item = db.db_classifiers.find_classifier_object(Codepage, pager_item.id_codepage)

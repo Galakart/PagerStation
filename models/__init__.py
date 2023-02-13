@@ -1,2 +1,2 @@
 """Объединитель моделей"""
-from . import model_messages, model_pagers, model_users
+from . import model_hardware, model_messages, model_users
