@@ -3,7 +3,7 @@ from transliterate import translit
 from transliterate.base import TranslitLanguagePack, registry
 from transliterate.discover import autodiscover
 
-from models.model_hardware import Codepages
+from models.model_hardware import CodepageEnum
 
 ALLOWED_SYMBOLS = [
     ' ', '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/',
@@ -151,13 +151,13 @@ class CharsetEncoder():
         # в эфир передаются только латинские буквы и спецсимволы (то есть по сути, весь набор lat),
         # так что так или иначе, независимо от заданной кодировки, нам нужно преобразовать её в набор lat
 
-        if id_codepage == Codepages.LAT.value:
+        if id_codepage == CodepageEnum.LAT.value:
             # набор уже lat, ничего преобразовывать не нужно, только если встречаются русские символы,
             # то транслитерируем их в латиницу. В конце проверим, не затесались ли символы, которых нету в наборе
             lat_text = translit(message, 'ru_ext', reversed=True)
             result = self.check_allowed_symbols(lat_text)
 
-        elif id_codepage == Codepages.CYR.value:
+        elif id_codepage == CodepageEnum.CYR.value:
             # переведём все английские слова в русский транслит (так как из-за сопоставления таблиц перекодировок идёт
             # смена регистра, чтобы потом не наблюдать на пейджере что-то вроде тЕЦХНОЛОГЫ),
             # затем перекодируем в lat по словарю SYMBOLS_CYR
@@ -166,7 +166,7 @@ class CharsetEncoder():
                 ru_text = ru_text.replace(cyr_symbol, lat_symbol)
             result = self.check_allowed_symbols(ru_text)
 
-        elif id_codepage == Codepages.LINGUIST.value:
+        elif id_codepage == CodepageEnum.LINGUIST.value:
             # Транслитерация не нужна, но в этом наборе только заглавные буквы, так что сделаем их такими,
             # и потом уже кодируем встречающиеся русские заглавные символы по словарю SYMBOLS_LINGUIST.
             # Встречающиеся латинские заглавные кодировать не нужно, они совпадают с набором lat

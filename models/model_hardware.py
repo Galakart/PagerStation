@@ -1,7 +1,7 @@
 """Модели пейджеров"""
 import enum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
@@ -11,20 +11,22 @@ from models.model_users import user_pagers
 # pylint: disable=missing-class-docstring,too-few-public-methods
 
 
-class Baudrates(enum.IntEnum):
+# TODO magic numbers
+
+class BaudrateEnum(enum.IntEnum):
     BAUD_512 = 1
     BAUD_1024 = 2
     BAUD_2048 = 3
 
 
-class Fbits(enum.IntEnum):
+class FbitEnum(enum.IntEnum):
     BIT_0 = 0
     BIT_1 = 1
     BIT_2 = 2
     BIT_3 = 3
 
 
-class Codepages(enum.IntEnum):
+class CodepageEnum(enum.IntEnum):
     LAT = 1
     CYR = 2
     LINGUIST = 3
@@ -68,9 +70,20 @@ class Transmitter(Base):
 
 class TransmitterSchema(BaseModel):
     id: int | None
-    name: str
-    freq: int
-    id_baudrate: int
+    name: str = Field(
+        title="Название передатчика",
+        example="Motorola",
+        max_length=50,
+    )
+    freq: int = Field(
+        title="Частота, Гц",
+        example=159025000,
+        gt=0,
+        lt=999999999,
+    )
+    id_baudrate: BaudrateEnum = Field(
+        title="Скорость передачи",
+    )
 
     class Config:
         orm_mode = True

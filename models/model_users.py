@@ -13,6 +13,7 @@ class Roles(enum.IntEnum):
     ADMIN = 10
 
 # TODO BigInteger и SmallInteger
+# relationship https://fastapi.tiangolo.com/tutorial/sql-databases/
 
 
 user_pagers = Table(
