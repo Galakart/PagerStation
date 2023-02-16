@@ -4,7 +4,7 @@ import logging
 import requests
 
 import db
-from models.model_messages import MaildropTypes
+from models.model_messages import MaildropTypeEnum
 
 from . import rss_feeder
 
@@ -14,7 +14,7 @@ LOGGER = logging.getLogger('applog')
 def make_currency():
     today_datetime = datetime.datetime.now()
 
-    id_maildrop_type = MaildropTypes.CURRENCY.value
+    id_maildrop_type = MaildropTypeEnum.CURRENCY.value
     last_sent_message = db.db_messages.get_last_sent_maildrop_by_type(id_maildrop_type)
     if last_sent_message:
         delta_dates = today_datetime - last_sent_message.date_create

@@ -9,7 +9,7 @@ from models.base import Base
 # pylint: disable=missing-class-docstring,too-few-public-methods
 
 
-class Roles(enum.IntEnum):
+class RoleEnum(enum.IntEnum):
     ADMIN = 10
 
 # TODO BigInteger и SmallInteger

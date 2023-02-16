@@ -10,7 +10,7 @@ from models.base import Base
 # pylint: disable=missing-class-docstring,too-few-public-methods
 
 
-class MaildropTypes(enum.IntEnum):
+class MaildropTypeEnum(enum.IntEnum):
     NOTIFICATION = 1
     NEWS = 2
     WEATHER = 3

@@ -7,7 +7,7 @@ from pyowm.utils.config import get_default_config
 
 import config
 import db
-from models.model_messages import MaildropTypes
+from models.model_messages import MaildropTypeEnum
 
 from . import rss_feeder
 
@@ -21,7 +21,7 @@ HOUR_EVENING = 21
 def make_forecast():
     today_datetime = datetime.datetime.now()
 
-    id_maildrop_type = MaildropTypes.WEATHER.value
+    id_maildrop_type = MaildropTypeEnum.WEATHER.value
     last_sent_message = db.db_messages.get_last_sent_maildrop_by_type(id_maildrop_type)
     if last_sent_message:
         delta_dates = today_datetime - last_sent_message.date_create
