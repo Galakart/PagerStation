@@ -14,14 +14,14 @@ router = APIRouter(
 
 
 @router.get("/transmitters", response_model=list[TransmitterSchema])
-def transmitters_items(skip: int = 0, limit: int = LIMIT_GET):
+def transmitters_items_get(skip: int = 0, limit: int = LIMIT_GET):
     """Вывод всех передатчиков"""
     all_transmitters_tuple = db.db_hardware.get_all_transmitters(skip, limit)
     return all_transmitters_tuple
 
 
 @router.get("/transmitters/{id_transmitter}", response_model=TransmitterSchema)
-def transmitter(id_transmitter: int):
+def transmitter_get(id_transmitter: int):
     """Вывод конкретного передатчика"""
     transmitter_item = db.db_hardware.get_transmitter(id_transmitter)
     if not transmitter_item:
@@ -62,3 +62,54 @@ def transmitter_delete(id_transmitter: int):
     if not result:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка удаления передатчика")
     return transmitter_item
+
+
+@router.get("/pagers", response_model=list[PagerSchema])
+def pagers_items_get(skip: int = 0, limit: int = LIMIT_GET):
+    """Вывод всех пейджеров"""
+    all_pagers_tuple = db.db_hardware.get_all_pagers(skip, limit)
+    return all_pagers_tuple
+
+
+@router.get("/pagers/{id_pager}", response_model=PagerSchema)
+def pager_get(id_pager: int):
+    """Вывод конкретного пейджера"""
+    pager_item = db.db_hardware.get_pager(id_pager)
+    if not pager_item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пейджер не найден")
+    return pager_item
+
+
+@router.post("/pagers", response_model=PagerSchema, status_code=status.HTTP_201_CREATED)
+def pager_add(pager_schema_item: PagerSchema):
+    """Добавление пейджера"""
+    pager_item = db.db_hardware.create_pager(pager_schema_item)
+    if not pager_item:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка добавления пейджера")
+    return pager_item
+
+
+@router.put("/pagers/{id_pager}", response_model=PagerSchema)
+def pager_update(pager_schema_item: PagerSchema, id_pager: int):
+    """Редактирование пейджера"""
+    pager_item = db.db_hardware.get_pager(id_pager)
+    if not pager_item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пейджер не найден")
+
+    pager_item = db.db_hardware.update_pager(pager_schema_item, id_pager)
+    if not pager_item:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка редактирования пейджера")
+    return pager_item
+
+
+@router.delete("/pagers/{id_pager}", response_model=PagerSchema)
+def pager_delete(id_pager: int):
+    """Удаление пейджера"""
+    pager_item = db.db_hardware.get_pager(id_pager)
+    if not pager_item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пейджер не найден")
+
+    result = db.db_hardware.delete_pager(id_pager)
+    if not result:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка удаления пейджера")
+    return pager_item

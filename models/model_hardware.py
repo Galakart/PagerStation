@@ -102,11 +102,23 @@ class Pager(Base):
 
 
 class PagerSchema(BaseModel):
-    id: int | None
-    capcode: int
-    id_fbit: int
-    id_codepage: int
-    id_transmitter: int
+    id: int = Field(
+        title="Абонентский номер",
+    )
+    capcode: int = Field(
+        title="Приватный капкод",
+        ge=10,  # из-за особенностей POCSAG-протокола, не рекомендуется использовать капкоды меньше 10
+        le=9999999,
+    )
+    id_fbit: FbitEnum = Field(
+        title="Приватный источник",
+    )
+    id_codepage: CodepageEnum = Field(
+        title="Кодировка пейджера",
+    )
+    id_transmitter: int = Field(
+        title="id передатчика",
+    )
 
     class Config:
         orm_mode = True
