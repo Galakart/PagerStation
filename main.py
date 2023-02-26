@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from maildrop import fetcher_celebrations, fetcher_maildrop
 from pocsag_sender import sender
-from routers import router_direct, router_hardware
+from routers import router_direct, router_hardware, router_users
 
 app = FastAPI()
 app.add_middleware(
@@ -23,6 +23,7 @@ app.add_middleware(
 scheduler = BackgroundScheduler()
 app.include_router(router_direct.router)
 app.include_router(router_hardware.router)
+app.include_router(router_users.router)
 
 if not os.path.exists('logs'):
     os.makedirs('logs')

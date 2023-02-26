@@ -3,9 +3,9 @@ from fastapi import APIRouter, HTTPException, status
 import db
 from models.model_hardware import PagerSchema, TransmitterSchema
 
-# UUID Primary keys https://fastapi.tiangolo.com/tutorial/extra-data-types/
+# TODO UUID Primary keys https://fastapi.tiangolo.com/tutorial/extra-data-types/
 
-LIMIT_GET = 50
+LIMIT_GET = 50  # TODO вынести во всех роутерах в константы
 
 router = APIRouter(
     prefix="/hardware",

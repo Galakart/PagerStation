@@ -1,6 +1,8 @@
 """Модели юзеров"""
+import datetime
 import enum
 
+from pydantic import BaseModel, Field
 from sqlalchemy import Column, Date, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
@@ -32,6 +34,23 @@ class User(Base):
     fio = Column(String(200), nullable=False)
     datar = Column(Date)
     pagers = relationship('Pager', secondary=user_pagers, back_populates='users')
+
+
+class UserSchema(BaseModel):
+    id: int | None
+    fio: str = Field(
+        title="ФИО пользователя",
+        example="Иванов Иван Иванович",
+        max_length=200,
+        min_length=3,
+    )
+    datar: datetime.date = Field(
+        title="Дата рождения пользователя",
+        example=datetime.date(1991, 7, 12),
+    )
+
+    class Config:
+        orm_mode = True
 
 
 class Role(Base):
