@@ -56,10 +56,6 @@ def make_forecast():
                 sunrise = time.strftime("%H:%M", time.localtime(one_call.current.sunrise_time(timeformat='unix')))
                 sunset = time.strftime("%H:%M", time.localtime(one_call.current.sunset_time(timeformat='unix')))
 
-                status_tomorrow = one_call.forecast_daily[1].detailed_status
-                temp_tomorrow_morn = round(one_call.forecast_daily[1].temperature('celsius')['morn'])
-                temp_tomorrow_day = round(one_call.forecast_daily[1].temperature('celsius')['day'])
-
                 maildrop_text = 'Погода. '
                 maildrop_text += f'Сейчас: {temp}, {status}, влажность {hum}%, давл. {pressure}мм.рт.ст., '
                 maildrop_text += f'восход: {sunrise}, закат: {sunset} *** '
@@ -67,18 +63,32 @@ def make_forecast():
                 if today_datetime.hour < HOUR_DAY:
                     delta_day = HOUR_DAY - today_datetime.hour
                     temp_day = round(one_call.forecast_hourly[delta_day].temperature('celsius')['temp'])
+                    if temp_day > 0:
+                        temp_day = f'+{temp_day}'
                     status_day = one_call.forecast_hourly[delta_day].detailed_status
                     maildrop_text += f'Днём: {temp_day}, {status_day} *** '
                 elif today_datetime.hour >= HOUR_DAY and today_datetime.hour < HOUR_EVENING:
                     delta_eve = HOUR_EVENING - today_datetime.hour
                     temp_eve = round(one_call.forecast_hourly[delta_eve].temperature('celsius')['temp'])
+                    if temp_eve > 0:
+                        temp_eve = f'+{temp_eve}'
                     status_eve = one_call.forecast_hourly[delta_eve].detailed_status
                     maildrop_text += f'Вечером: {temp_eve}, {status_eve} *** '
                 else:
                     temp_night = round(one_call.forecast_daily[0].temperature('celsius')['night'])
+                    if temp_night > 0:
+                        temp_night = f'+{temp_night}'
                     maildrop_text += f'Ночью: {temp_night} *** '
 
+                status_tomorrow = one_call.forecast_daily[1].detailed_status
+                temp_tomorrow_morn = round(one_call.forecast_daily[1].temperature('celsius')['morn'])
+                if temp_tomorrow_morn > 0:
+                    temp_tomorrow_morn = f'+{temp_tomorrow_morn}'
+                temp_tomorrow_day = round(one_call.forecast_daily[1].temperature('celsius')['day'])
+                if temp_tomorrow_day > 0:
+                    temp_tomorrow_day = f'+{temp_tomorrow_day}'
                 maildrop_text += f'Завтра: {status_tomorrow}, утром {temp_tomorrow_morn}, днём {temp_tomorrow_day}'
+
             except Exception as ex:
                 LOGGER.error('Ошибка получения данных о погоде\n %s', ex, exc_info=True)
                 return

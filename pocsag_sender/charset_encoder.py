@@ -133,8 +133,11 @@ class RuExtendedLanguagePack(TranslitLanguagePack):
         "the": "зе", "The": "Зе", "THE": "ЗЕ",
         "ech": "ех", "Ech": "Ех", "ECH": "ЕХ",
         "chr": "хр", "Chr": "Хр", "CHR": "ХР",
+        "you": "ю", "You": "Ю", "YOU": "Ю",
+
         "ch": "ч", "Ch": "Ч", "CH": "Ч",
         "gy": "джи", "Gy": "Джи", "GY": "ДЖИ",
+
         "q": "ку", "Q": "Ку",
         "x": "кс", "X": "КС",
     }
@@ -146,7 +149,13 @@ class CharsetEncoder():
         registry.register(RuExtendedLanguagePack)
 
     def encode_message(self, message, id_codepage):
-        message = message.replace('«', '"').replace('»', '"').replace('&amp;', '&')
+        message = message \
+            .replace('«', '"') \
+            .replace('»', '"') \
+            .replace('&amp;', '&') \
+            .replace('&gt;', '>') \
+            .replace('&lt;', '<') \
+            .replace('&quot;', '"')
 
         # в эфир передаются только латинские буквы и спецсимволы (то есть по сути, весь набор lat),
         # так что так или иначе, независимо от заданной кодировки, нам нужно преобразовать её в набор lat
