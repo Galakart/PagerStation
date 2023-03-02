@@ -1,5 +1,6 @@
 """Модели пейджеров"""
 import enum
+from typing import Optional
 
 from pydantic import BaseModel, Field
 from sqlalchemy import Column, ForeignKey, Integer, String
@@ -69,7 +70,7 @@ class Transmitter(Base):
 
 
 class TransmitterSchema(BaseModel):
-    id: int | None
+    id: Optional[int]
     name: str = Field(
         title="Название передатчика",
         example="Motorola",

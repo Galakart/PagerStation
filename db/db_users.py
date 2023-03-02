@@ -5,20 +5,20 @@ import logging
 from sqlalchemy.sql.expression import extract
 
 from db.connection import Session
-from models.model_users import RoleEnum, ServiceRole, User, UserSchema
+from models.model_users import User, UserSchema
 
 LOGGER = logging.getLogger('applog')
 # TODO в Users добавить поле active
 
 
-def get_all_users(skip: int, limit: int) -> tuple[User] | None:
+def get_all_users(skip: int, limit: int) -> tuple[User]:
     session = Session()
     values_tuple = session.query(User).offset(skip).limit(limit).all()
     session.close()
     return values_tuple
 
 
-def get_user(id_user: int) -> User | None:
+def get_user(id_user: int) -> User:
     session = Session()
     value = session.query(User).get(id_user)
     session.close()
@@ -75,15 +75,6 @@ def delete_user(id_user: int) -> bool:
     finally:
         session.close()
     return result
-
-
-def get_admins():
-    """Все админы"""
-    session = Session()
-    values_tuple = session.query(User).join(ServiceRole, ServiceRole.id_user == User.id).filter(
-        ServiceRole.id_role == RoleEnum.ADMIN.value).all()  # TODO ... Users.active==1
-    session.close()
-    return values_tuple
 
 
 def get_user_pagers(id_user: int):

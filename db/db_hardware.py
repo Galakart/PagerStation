@@ -7,14 +7,14 @@ from models.model_hardware import (Pager, PagerSchema, Transmitter,
 LOGGER = logging.getLogger('applog')
 
 
-def get_all_transmitters(skip: int, limit: int) -> tuple[Transmitter] | None:
+def get_all_transmitters(skip: int, limit: int) -> tuple[Transmitter]:
     session = Session()
     values_tuple = session.query(Transmitter).offset(skip).limit(limit).all()
     session.close()
     return values_tuple
 
 
-def get_transmitter(id_transmitter: int) -> Transmitter | None:
+def get_transmitter(id_transmitter: int) -> Transmitter:
     session = Session()
     value = session.query(Transmitter).get(id_transmitter)
     session.close()
@@ -75,14 +75,14 @@ def delete_transmitter(id_transmitter: int) -> bool:
     return result
 
 
-def get_all_pagers(skip: int, limit: int) -> tuple[Pager] | None:
+def get_all_pagers(skip: int, limit: int) -> tuple[Pager]:
     session = Session()
     values_tuple = session.query(Pager).offset(skip).limit(limit).all()
     session.close()
     return values_tuple
 
 
-def get_pager(id_pager: int) -> Pager | None:
+def get_pager(id_pager: int) -> Pager:
     session = Session()
     value = session.query(Pager).get(id_pager)
     session.close()

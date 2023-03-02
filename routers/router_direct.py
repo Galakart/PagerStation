@@ -19,7 +19,7 @@ def msg_for_admin_form():
 
 
 @router.post("/to_admin_form_action", response_class=HTMLResponse)
-def to_admin_form_action(request: Request, mes_text=Form()):
+def to_admin_form_action(request: Request, id_pager=Form(), mes_text=Form()):
     client_ip = request.client.host if request.client else None
     if not mes_text:
         return """
@@ -37,22 +37,19 @@ def to_admin_form_action(request: Request, mes_text=Form()):
                 <a href="./to_admin">назад</a>
             </CENTER>
             """
+    db.db_messages.create_or_update_stricts_ipaddress(client_ip)
 
-    admins_tuple = db.db_users.get_admins()
-    if admins_tuple:
-        for admin_item in admins_tuple:
-            pagers = db.db_users.get_user_pagers(admin_item.id)
-            for pager_item in pagers:
-                db.db_messages.create_message_private(pager_item.id, mes_text)
+    pager_item = db.db_hardware.get_pager(id_pager)
+    if pager_item:
+        db.db_messages.create_message_private(pager_item.id, mes_text)
     else:
         return """
             <CENTER>
-                <p><b>Админов в сервисе не зарегистрировано</b></p>
+                <p><b>Админа с таким абонентским номером в сервисе не зарегистрировано</b></p>
                 <a href="./to_admin">назад</a>
             </CENTER>
             """
 
-    db.db_messages.create_or_update_stricts_ipaddress(client_ip)
     return """
             <CENTER>
                 <p><b>Сообщение отправлено</b></p>
