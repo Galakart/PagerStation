@@ -12,6 +12,7 @@ from maildrop import fetcher_celebrations, fetcher_maildrop
 from pocsag_sender import sender
 from routers import router_direct, router_hardware, router_users
 
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
