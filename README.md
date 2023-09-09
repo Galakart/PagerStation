@@ -55,11 +55,13 @@
 
 С подключением закончили, переходим к программной части.
 
+TODO - установка через pi imager, описать что нужно образ Lite и зайти в настройки включить ssh
 Если мы ставим всё с нуля, то раскатываем на карту памяти образ свежей Raspberry Pi OS (она же в прошлом Raspbian). Подключаемся по SSH в консоль и первым делом запустим настройки.
 ```bash
 sudo raspi-config
 ```
 
+TODO - Expand Filesystem уже вроде как не нужен
 Главное что тут нужно поменять:
 - сдвинуть доступную GPU Memory на минимум, освободив оперативку;
 - расширить файловую систему на всю карту памяти (Expand Filesystem);
@@ -77,12 +79,6 @@ sudo dpkg-reconfigure tzdata
 sudo apt update
 sudo apt dist-upgrade
 sudo apt autoremove
-```
-
-По желанию, ставим русский язык:
-```bash
-sudo apt install language-pack-ru
-sudo update-locale LANG=ru_RU.UTF-8
 ```
 
 Устанавливаем всё необходимое ПО:
@@ -143,6 +139,7 @@ sudo mysql_secure_installation
 - на вопрос о текущем пароле (current root password) просто нажать Enter (без пароля);
 - на вопрос "установить пароль root?" (set root password) - говорим no, мы всё равно не будем использовать учётку рута;
 - на все остальные вопросы отвечаем yes;
+TODO - на всё что он предлагает отвечать No - так и отвечать, на остальное yes
 
 Далее создадим юзера БД, допустим с именем admin и паролем password, и новую БД для приложения:
 ```bash
@@ -160,7 +157,9 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-Убедимся что мы в окружении - зелёное **venv** слева от командной строки (проверять в дальнейшем каждый раз, когда задействуем всё что связано с python из командной строки).
+mkdir logs
+
+Убедимся что мы в окружении - надпись **venv** слева от командной строки (проверять в дальнейшем каждый раз, когда задействуем всё что связано с python из командной строки).
 
 Скопируем и отредактируем файл настроек:
 ```bash
@@ -170,7 +169,7 @@ nano config.py
 
 - DB_NAME, DB_HOST, DB_USER, DB_PASS - параметры доступа к БД;
 - OWM_TOKEN - токен OpenWeatherMap, который необходимо получить у них на сайте, для того чтобы работала отправка прогноза погоды;
-- OWM_CITY - соответственно, город для OpenWeatherMap;
+- OWM_LATITUDE и OWM_LONGITUDE - соответственно, координаты города для OpenWeatherMap;
 
 Установим зависимости, проведём миграции БД:
 ```bash
@@ -178,7 +177,13 @@ pip install -r requirements.txt
 alembic upgrade head
 ```
 
-Не знаю как будет в будущем, но на текущий момент в пакете PyOWM есть баг с получением прогноза погоды. Нужно вручную подправить файл в виртуальном окружении: venv/lib/python3.10/site-packages/pyowm/weatherapi25/national_weather_alert.py
+TODO раздел про бекапы
+crontab -e
+mariadb -u admin -p pagerstation < pagerstation.sql
+
+
+
+Не знаю как будет в будущем, но на текущий момент в пакете PyOWM есть баг с получением прогноза погоды. Нужно вручную подправить файл в виртуальном окружении: venv/lib/python3.9/site-packages/pyowm/weatherapi25/national_weather_alert.py
 ```
 assert sender поменять на assert sender is not None
 assert description поменять на assert description is not None
