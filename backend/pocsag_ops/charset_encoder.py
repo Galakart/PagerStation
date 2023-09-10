@@ -3,7 +3,7 @@ from transliterate import translit
 from transliterate.base import TranslitLanguagePack, registry
 from transliterate.discover import autodiscover
 
-from models.model_hardware import CodepageEnum
+from backend.models.model_hardware import CodepageEnum
 
 ALLOWED_SYMBOLS = [
     ' ', '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/',
@@ -159,7 +159,7 @@ class CharsetEncoder():
 
         # в эфир передаются только латинские буквы и спецсимволы (то есть по сути, весь набор lat),
         # так что так или иначе, независимо от заданной кодировки, нам нужно преобразовать её в набор lat
-
+        result = ''
         if id_codepage == CodepageEnum.LAT.value:
             # набор уже lat, ничего преобразовывать не нужно, только если встречаются русские символы,
             # то транслитерируем их в латиницу. В конце проверим, не затесались ли символы, которых нету в наборе

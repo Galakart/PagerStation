@@ -5,7 +5,7 @@ import enum
 from sqlalchemy import (BigInteger, Boolean, Column, DateTime, ForeignKey,
                         Integer, String, Text)
 
-from models.base import Base
+from .base import Base
 
 # pylint: disable=missing-class-docstring,too-few-public-methods
 

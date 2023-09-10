@@ -6,13 +6,12 @@ from pydantic import BaseModel, Field
 from sqlalchemy import Column, Date, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
-from models.base import Base
+from .base import Base
 
 # pylint: disable=missing-class-docstring,too-few-public-methods
 
 
-# TODO BigInteger и SmallInteger
-# relationship https://fastapi.tiangolo.com/tutorial/sql-databases/
+# TODO relationship https://fastapi.tiangolo.com/tutorial/sql-databases/
 
 
 user_pagers = Table(
@@ -37,14 +36,14 @@ class UserSchema(BaseModel):
     id: Optional[int]
     fio: str = Field(
         title="ФИО пользователя",
-        example="Иванов Иван Иванович",
+        examples=["Иванов Иван Иванович"],
         max_length=200,
         min_length=3,
     )
     datar: datetime.date = Field(
         title="Дата рождения пользователя",
-        example=datetime.date(1991, 7, 12),
+        examples=[datetime.date(1991, 7, 12)],
     )
 
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -1,14 +1,8 @@
-"""Всё по отправке сообщений в эфир"""
-import datetime
-import os
-
 import db
 from models.model_hardware import Baudrate, Codepage, Transmitter
 from models.model_messages import MessageMailDrop, MessagePrivate
-from pocsag_sender.charset_encoder import CharsetEncoder
 
-charset_encoder = CharsetEncoder()
-
+import datetime
 
 def send_messages() -> bool:
     """Проверка и отправка неотправленных сообщений"""
@@ -41,26 +35,4 @@ def send_messages() -> bool:
                                transmitter_item.freq, baudrate_item.name, codepage_item.id, unsent_message_maildrop_item.message)
                 db.db_messages.mark_message_maildrop_sent(unsent_message_maildrop_item.id)
 
-    return True
-
-
-def message_to_air(capcode: int, fbit: int, freq: int, baudrate: int, id_codepage: int, message: str) -> bool:
-    """Отправляет сообщение в эфир
-
-    Args:
-        capcode (int): капкод
-        fbit (int): id источника
-        freq (int): частота в Гц
-        baudrate (int): id скорости
-        id_codepage (int): id кодировки текста
-        message (str): сообщение
-
-    Returns:
-        bool: успех
-    """
-    capcode = f'{capcode:07d}'
-    message_text = charset_encoder.encode_message(message, id_codepage)
-    if not os.path.exists('./pocsag'):
-        return False
-    os.system(f'echo "{capcode}:{message_text}" | sudo ./pocsag -f "{freq}" -b {fbit} -r {baudrate} -t 1')
     return True

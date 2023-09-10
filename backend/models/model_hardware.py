@@ -3,36 +3,35 @@ import enum
 from typing import Optional
 
 from pydantic import BaseModel, Field
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, Enum
 from sqlalchemy.orm import relationship
 
-from models.base import Base
-from models.model_users import user_pagers
+from .base import Base
+from .model_user import user_pagers
 
 # pylint: disable=missing-class-docstring,too-few-public-methods
 
 
 # TODO magic numbers
 
-class BaudrateEnum(enum.IntEnum):
+class BaudrateEnum(enum.Enum):
     BAUD_512 = 1
-    BAUD_1024 = 2
-    BAUD_2048 = 3
+    BAUD_1200 = 2
+    BAUD_2400 = 3
 
 
-class FbitEnum(enum.IntEnum):
+class FbitEnum(enum.Enum):
     BIT_0 = 0
     BIT_1 = 1
     BIT_2 = 2
     BIT_3 = 3
 
 
-class CodepageEnum(enum.IntEnum):
+class CodepageEnum(enum.Enum):
     LAT = 1
     CYR = 2
     LINGUIST = 3
 
-# TODO соотношения между моделями настроить, чтобы например из Pager перескочить на Transmitter
 
 
 class Baudrate(Base):
@@ -68,17 +67,16 @@ class Transmitter(Base):
     freq = Column(Integer, unique=True, nullable=False)
     id_baudrate = Column(Integer, ForeignKey('n_baudrates.id'), nullable=False)
 
-
 class TransmitterSchema(BaseModel):
     id: Optional[int]
     name: str = Field(
         title="Название передатчика",
-        example="Motorola",
+        examples=["Motorola"],
         max_length=50,
     )
     freq: int = Field(
         title="Частота, Гц",
-        example=159025000,
+        examples=[159025000],
         gt=0,
         lt=999999999,
     )
@@ -87,7 +85,7 @@ class TransmitterSchema(BaseModel):
     )
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class Pager(Base):
@@ -122,4 +120,4 @@ class PagerSchema(BaseModel):
     )
 
     class Config:
-        orm_mode = True
+        from_attributes = True

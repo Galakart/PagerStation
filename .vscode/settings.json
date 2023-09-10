@@ -1,15 +1,15 @@
 {
-    "python.linting.enabled": true,
-    "python.linting.pylintEnabled": true,
-    "python.linting.pylintArgs": [
+    "pylint.args": [
         "--max-line-length=120"
     ],
-    "python.formatting.provider": "autopep8",
-    "python.formatting.autopep8Args": [
+    "autopep8.args": [
         "--ignore=E501" // disable automatic line-wrap
     ],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.autopep8"
+    },
     "editor.rulers": [
         120,
     ],
-    // "python.analysis.typeCheckingMode": "basic"
+    "python.analysis.typeCheckingMode": "basic"
 }

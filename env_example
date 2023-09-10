@@ -1,0 +1,4 @@
+# скопировать этот файл в .env
+OWM_TOKEN=some_token
+OWM_LATITUDE=53.77
+OWM_LONGITUDE=87.17

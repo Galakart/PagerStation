@@ -1,8 +1,8 @@
 
-/config.py
-/logs/
-/test_*
+/database.db
 /pocsag
+/logs/
+test*.py
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,visualstudiocode
