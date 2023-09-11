@@ -12,9 +12,9 @@ from .base import Base
 
 class MaildropTypeEnum(enum.IntEnum):
     NOTIFICATION = 1
-    NEWS = 2
-    WEATHER = 3
-    CURRENCY = 4
+    WEATHER = 2
+    CURRENCY = 3
+    NEWS = 4
 
 
 class MessagePrivate(Base):
@@ -71,7 +71,7 @@ class RssFeed(Base):
 
 class StrictsIPaddress(Base):
     __tablename__ = 'stricts_ipaddresses'
-    __table_args__ = {"comment": "IP адреса для ограничений на количество прямых сообщений"}
+    __table_args__ = {"comment": "IP адреса для ограничений на количество сообщений за период"}
 
     ip_address = Column(String(16), primary_key=True)
-    last_send = Column(DateTime, nullable=False, default=datetime.datetime.now, comment='Дата-время последней прямой отправки')
+    last_send = Column(DateTime, nullable=False, default=datetime.datetime.now, comment='Дата-время последней отправки')

@@ -3,7 +3,7 @@ import enum
 from typing import Optional
 
 from pydantic import BaseModel, Field
-from sqlalchemy import Column, ForeignKey, Integer, String, Enum
+from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -11,8 +11,6 @@ from .model_user import user_pagers
 
 # pylint: disable=missing-class-docstring,too-few-public-methods
 
-
-# TODO magic numbers
 
 class BaudrateEnum(enum.Enum):
     BAUD_512 = 1
@@ -31,7 +29,6 @@ class CodepageEnum(enum.Enum):
     LAT = 1
     CYR = 2
     LINGUIST = 3
-
 
 
 class Baudrate(Base):
@@ -66,6 +63,7 @@ class Transmitter(Base):
     name = Column(String(50), unique=True, nullable=False)
     freq = Column(Integer, unique=True, nullable=False)
     id_baudrate = Column(Integer, ForeignKey('n_baudrates.id'), nullable=False)
+
 
 class TransmitterSchema(BaseModel):
     id: Optional[int]

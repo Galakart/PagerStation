@@ -1,4 +1,4 @@
-"""Модели юзеров"""
+"""Модели пользователей"""
 import datetime
 from typing import Optional
 
@@ -9,9 +9,6 @@ from sqlalchemy.orm import relationship
 from .base import Base
 
 # pylint: disable=missing-class-docstring,too-few-public-methods
-
-
-# TODO relationship https://fastapi.tiangolo.com/tutorial/sql-databases/
 
 
 user_pagers = Table(
