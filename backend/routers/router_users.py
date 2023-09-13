@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
-import db
-from models.model_users import UserSchema
-
-LIMIT_GET = 50
+import backend.constants as const
+from backend.db import db_user
+from backend.db.connection import get_session
+from backend.models.model_user import UserSchema
 
 router = APIRouter(
     prefix="/users",
@@ -11,52 +12,59 @@ router = APIRouter(
 )
 
 
-@router.get("/users", response_model=list[UserSchema])
-def users_items_get(skip: int = 0, limit: int = LIMIT_GET):
-    """Вывод всех юзеров"""
-    all_users_tuple = db.db_users.get_all_users(skip, limit)
-    return all_users_tuple
+@router.get("/", response_model=list[UserSchema])
+def get_users(session: Session = Depends(get_session), offset: int = 0, limit: int = const.LIMIT_GET):
+    """Вывод всех пользователей"""
+    users_tuple = db_user.get_users(session, offset, limit)
+    return users_tuple
 
 
-@router.get("/users/{id_user}", response_model=UserSchema)
-def user_get(id_user: int):
-    """Вывод конкретного юзера"""
-    user_item = db.db_users.get_user(id_user)
+@router.get("/{id_user}", response_model=UserSchema)
+def get_user(session: Session = Depends(get_session), id_user: int = 0):
+    """Вывод конкретного пользователя"""
+    user_item = db_user.get_user(session, id_user)
     if not user_item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден")
     return user_item
 
 
-@router.post("/users", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
-def user_add(user_schema_item: UserSchema):
-    """Добавление юзера"""
-    user_item = db.db_users.create_user(user_schema_item)
+@router.post("/", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
+def create_user(session: Session = Depends(get_session), user_schema_item: UserSchema = None):
+    """Добавление пользователя"""
+    user_item = db_user.create_user(session, user_schema_item)
     if not user_item:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка добавления пользователя")
     return user_item
 
 
-@router.put("/users/{id_user}", response_model=UserSchema)
-def user_update(user_schema_item: UserSchema, id_user: int):
-    """Редактирование юзера"""
-    user_item = db.db_users.get_user(id_user)
+@router.put("/{id_user}", response_model=UserSchema)
+def update_user(session: Session = Depends(get_session), user_schema_item: UserSchema = None):
+    """Редактирование пользователя"""
+    user_item = db_user.get_user(session, user_schema_item.id)
     if not user_item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден")
 
-    user_item = db.db_users.update_user(user_schema_item, id_user)
+    user_item = db_user.update_user(session, user_schema_item)
     if not user_item:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка редактирования пользователя")
     return user_item
 
 
-@router.delete("/users/{id_user}", response_model=UserSchema)
-def user_delete(id_user: int):
-    """Удаление юзера"""
-    user_item = db.db_users.get_user(id_user)
+@router.delete("/{id_user}", response_model=UserSchema)
+def delete_user(session: Session = Depends(get_session), id_user: int = 0):
+    """Удаление пользователя"""
+    user_item = db_user.get_user(session, id_user)
     if not user_item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден")
 
-    result = db.db_users.delete_user(id_user)
+    result = db_user.delete_user(session, id_user)
     if not result:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка удаления пользователя")
     return user_item
+
+
+@router.get("/birthdays/", response_model=list[UserSchema])
+def get_users_with_birthdays(session: Session = Depends(get_session), offset: int = 0, limit: int = const.LIMIT_GET):
+    """Вывод всех пользователей, у кого сегодня день рождения"""
+    users_tuple = db_user.get_users_with_birthday(session, offset, limit)
+    return users_tuple

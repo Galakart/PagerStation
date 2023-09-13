@@ -37,7 +37,7 @@ class UserSchema(BaseModel):
         max_length=200,
         min_length=3,
     )
-    datar: datetime.date = Field(
+    datar: Optional[datetime.date] = Field(
         title="Дата рождения пользователя",
         examples=[datetime.date(1991, 7, 12)],
     )
