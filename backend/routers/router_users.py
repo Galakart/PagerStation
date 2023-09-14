@@ -38,13 +38,13 @@ def create_user(session: Session = Depends(get_session), user_schema_item: UserS
 
 
 @router.put("/{id_user}", response_model=UserSchema)
-def update_user(session: Session = Depends(get_session), user_schema_item: UserSchema = None):
+def update_user(session: Session = Depends(get_session), id_user: int = 0, user_schema_item: UserSchema = None):
     """Редактирование пользователя"""
-    user_item = db_user.get_user(session, user_schema_item.id)
+    user_item = db_user.get_user(session, id_user)
     if not user_item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден")
 
-    user_item = db_user.update_user(session, user_schema_item)
+    user_item = db_user.update_user(session, id_user, user_schema_item)
     if not user_item:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка редактирования пользователя")
     return user_item

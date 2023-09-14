@@ -1,7 +1,7 @@
 import datetime
 import logging
 
-from sqlalchemy import and_, desc, extract, or_, select
+from sqlalchemy import and_, extract, select
 from sqlalchemy.orm import Session
 
 from backend.models.model_user import User, UserSchema
@@ -35,8 +35,8 @@ def create_user(session: Session, user_schema_item: UserSchema) -> User:
     return user
 
 
-def update_user(session: Session, user_schema_item: UserSchema) -> User:
-    user = session.get(User, user_schema_item.id)
+def update_user(session: Session, id_user: int, user_schema_item: UserSchema) -> User:
+    user = session.get(User, id_user)
     if user:
         user.fio = user_schema_item.fio
         user.datar = user_schema_item.datar
@@ -44,7 +44,6 @@ def update_user(session: Session, user_schema_item: UserSchema) -> User:
         session.add(user)
         session.commit()
         session.refresh(user)
-
     return user
 
 
@@ -55,7 +54,6 @@ def delete_user(session: Session, id_user: int) -> bool:
         session.delete(user)
         session.commit()
         result = True
-
     return result
 
 
