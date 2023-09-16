@@ -83,7 +83,7 @@ class TransmitterSchema(BaseModel):
     )
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 class Pager(Base):
@@ -118,4 +118,4 @@ class PagerSchema(BaseModel):
     )
 
     class Config:
-        from_attributes = True
+        orm_mode = True

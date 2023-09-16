@@ -1,7 +1,5 @@
 """Класс с конфигурациями из переменных окружения"""
-from pydantic import Extra, SecretStr
-from pydantic_settings import BaseSettings
-
+from pydantic import BaseSettings, Extra, SecretStr
 
 
 class Settings(BaseSettings, extra=Extra.ignore):
