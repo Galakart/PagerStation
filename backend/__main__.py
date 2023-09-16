@@ -32,7 +32,7 @@ logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
 file_handler = TimedRotatingFileHandler(
-    './logs/botlog.log',
+    './logs/applog.log',
     when='D',
     interval=1,
     backupCount=7,
