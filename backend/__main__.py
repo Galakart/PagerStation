@@ -10,7 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # from backend.jobs import fetcher_celebrations, fetcher_maildrop
 # from backend.jobs import pocsag_messages
-from backend.routers import router_hardware, router_messages, router_users
+from backend.routers import (router_hardware, router_messages, router_users,
+                             router_utils)
 
 app = FastAPI()
 app.add_middleware(
@@ -24,7 +25,7 @@ scheduler = BackgroundScheduler()
 app.include_router(router_users.router)
 app.include_router(router_hardware.router)
 app.include_router(router_messages.router)
-# app.include_router(router_direct.router)
+app.include_router(router_utils.router)
 
 
 if not os.path.exists('logs'):

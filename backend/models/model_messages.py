@@ -84,7 +84,7 @@ class MessageSchema(BaseModel):
     id_group_type: GroupTypeEnum = Field(
         title="Тип группового сообщения (для групповых сообщений)",
     )
-    id_maildrop_type: int = Field(
+    id_maildrop_type: MaildropTypeEnum = Field(
         title="Тип новостного сообщения (для новостных сообщений)",
     )
     message: str = Field(

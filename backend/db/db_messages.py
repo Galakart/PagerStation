@@ -1,98 +1,97 @@
 """Операции с пейджинговыми сообщениями"""
-import datetime
+import logging
 
-from sqlalchemy import desc
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from db.connection import Session
-from models.model_messages import (MailDropChannels, MessageMailDrop,
-                                   MessagePrivate, RssFeed)
-
-# TODO у MessagePrivate и MessageMailDrop объединить похожие методы
+from backend.models.model_messages import Message, MessageSchema
 
 
-def create_message_private(id_pager: int, message: str, datetime_send_after: datetime.datetime = None) -> bool:
-    session = Session()
-    new_item = MessagePrivate(
-        id_pager=id_pager,
-        message=message,
-        datetime_send_after=datetime_send_after,
+def get_messages(session: Session, offset=None, limit=None):
+    result = session.execute(
+        select(Message)
+        .offset(offset)
+        .limit(limit)
     )
-    session.add(new_item)
-    session.commit()
-    session.close()
-    return True
+    messages = result.scalars().all()
+    return messages
 
 
-def create_message_maildrop(id_maildrop_type: int, message: str) -> bool:
-    session = Session()
-    new_item = MessageMailDrop(
-        id_maildrop_type=id_maildrop_type,
-        message=message
+def get_message(session: Session, id_message: int) -> Message:
+    message = session.get(Message, id_message)
+    return message
+
+
+def create_message(session: Session, message_schema_item: MessageSchema) -> Message:
+    message = Message(
+        id_message_type=message_schema_item.id_message_type.value,
+        id_pager=message_schema_item.id_pager,
+        id_group_type=message_schema_item.id_group_type.value,
+        id_maildrop_type=message_schema_item.id_maildrop_type.value,
+        message=message_schema_item.message,
+        datetime_send_after=message_schema_item.datetime_send_after,
     )
-    session.add(new_item)
+    session.add(message)
     session.commit()
-    session.close()
-    return True
+    session.refresh(message)
+    return message
 
 
-def mark_message_private_sent(id_message_private: int) -> bool:
-    """Отметить - приватное сообщение отправлено"""
-    session = Session()
-    message_item = session.query(MessagePrivate).get(id_message_private)
-    if message_item:
-        message_item.sent = 1
-        session.add(message_item)
+def delete_message(session: Session, id_message: int) -> bool:
+    result = False
+    message = session.get(Message, id_message)
+    # TODO выдавать ошибку если сообщение уже отправлено
+    if message and not message.sent:
+        session.delete(message)
         session.commit()
-    session.close()
-    return True
+        result = True
+    return result
 
 
-def mark_message_maildrop_sent(id_message_maildrop: int) -> bool:
-    """Отметить - maildrop сообщение отправлено"""
-    session = Session()
-    message_item = session.query(MessageMailDrop).get(id_message_maildrop)
-    if message_item:
-        message_item.sent = 1
-        session.add(message_item)
+def mark_message_sent(session: Session, id_message: int) -> bool:
+    result = False
+    message = session.get(Message, id_message)
+    if message:
+        message.sent = True
+        session.add(message)
         session.commit()
-    session.close()
-    return True
+        result = True
+    return result
 
 
-def get_unsent_messages_private():
-    session = Session()
-    values_tuple = session.query(MessagePrivate).filter(MessagePrivate.sent == 0).limit(10).all()
-    session.close()
-    return values_tuple
+# def get_unsent_messages_private():
+#     session = Session()
+#     values_tuple = session.query(MessagePrivate).filter(MessagePrivate.sent == 0).limit(10).all()
+#     session.close()
+#     return values_tuple
 
 
-def get_unsent_messages_maildrop():
-    session = Session()
-    values_tuple = session.query(MessageMailDrop).filter(MessageMailDrop.sent == 0).limit(10).all()
-    session.close()
-    return values_tuple
+# def get_unsent_messages_maildrop():
+#     session = Session()
+#     values_tuple = session.query(MessageMailDrop).filter(MessageMailDrop.sent == 0).limit(10).all()
+#     session.close()
+#     return values_tuple
 
 
-def get_maildrop_channels_by_type(id_maildrop_type: int) -> MailDropChannels:
-    session = Session()
-    values_tuple = session.query(MailDropChannels).filter(MailDropChannels.id_maildrop_type == id_maildrop_type).all()
-    session.close()
-    return values_tuple
+# def get_maildrop_channels_by_type(id_maildrop_type: int) -> MailDropChannels:
+#     session = Session()
+#     values_tuple = session.query(MailDropChannels).filter(MailDropChannels.id_maildrop_type == id_maildrop_type).all()
+#     session.close()
+#     return values_tuple
 
 
-def get_last_sent_maildrop_by_type(id_maildrop_type: int) -> MessageMailDrop:
-    """Последнее отправленное MailDrop-сообщение"""
-    session = Session()
-    value = session.query(MessageMailDrop).filter(MessageMailDrop.id_maildrop_type ==
-                                                  id_maildrop_type).order_by(desc(MessageMailDrop.id)).first()
-    session.close()
-    return value
+# def get_last_sent_maildrop_by_type(id_maildrop_type: int) -> MessageMailDrop:
+#     """Последнее отправленное MailDrop-сообщение"""
+#     session = Session()
+#     value = session.query(MessageMailDrop).filter(MessageMailDrop.id_maildrop_type ==
+#                                                   id_maildrop_type).order_by(desc(MessageMailDrop.id)).first()
+#     session.close()
+#     return value
 
 
-def get_rss_feed_by_maildrop_type(id_maildrop_type: int) -> RssFeed:
-    """Возвращает RSS-ленту, связанную с этим id_maildrop_type """
-    session = Session()
-    value = session.query(RssFeed).filter(RssFeed.id_maildrop_type == id_maildrop_type).first()
-    session.close()
-    return value
-
+# def get_rss_feed_by_maildrop_type(id_maildrop_type: int) -> RssFeed:
+#     """Возвращает RSS-ленту, связанную с этим id_maildrop_type """
+#     session = Session()
+#     value = session.query(RssFeed).filter(RssFeed.id_maildrop_type == id_maildrop_type).first()
+#     session.close()
+#     return value
