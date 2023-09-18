@@ -8,7 +8,6 @@ from backend.models.model_hardware import PagerSchema, TransmitterSchema
 
 # TODO UUID Primary keys https://fastapi.tiangolo.com/tutorial/extra-data-types/
 
-LIMIT_GET = 50  # TODO вынести во всех роутерах в константы
 
 router = APIRouter(
     prefix="/hardware",

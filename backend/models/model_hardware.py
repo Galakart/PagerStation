@@ -1,5 +1,5 @@
 """Модели пейджеров"""
-import enum
+from enum import Enum, unique
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -12,20 +12,23 @@ from .model_user import user_pagers
 # pylint: disable=missing-class-docstring,too-few-public-methods
 
 
-class BaudrateEnum(enum.Enum):
+@unique
+class BaudrateEnum(Enum):
     BAUD_512 = 1
     BAUD_1200 = 2
     BAUD_2400 = 3
 
 
-class FbitEnum(enum.Enum):
+@unique
+class FbitEnum(Enum):
     BIT_0 = 0
     BIT_1 = 1
     BIT_2 = 2
     BIT_3 = 3
 
 
-class CodepageEnum(enum.Enum):
+@unique
+class CodepageEnum(Enum):
     LAT = 1
     CYR = 2
     LINGUIST = 3

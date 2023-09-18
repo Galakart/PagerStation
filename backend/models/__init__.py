@@ -1,2 +1,2 @@
-from . import model_user, model_hardware, model_messages
+from . import model_hardware, model_messages, model_user, model_utils
 from .base import Base
