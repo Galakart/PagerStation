@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # from backend.jobs import fetcher_celebrations, fetcher_maildrop
-from backend.jobs import pocsag_messages
+from backend.jobs import job_messages
 from backend.routers import (router_hardware, router_messages, router_users,
                              router_utils)
 
@@ -45,8 +45,8 @@ logging.getLogger('apscheduler.executors.default').setLevel(logging.WARNING)
 
 
 @scheduler.scheduled_job('interval', id='do_job_pocsag_messages', seconds=5, misfire_grace_time=900)
-def job_pocsag_sender():
-    pocsag_messages.send_messages()
+def job_send_messages():
+    job_messages.send_messages()
 
 
 # @scheduler.scheduled_job('interval', id='do_job_maildrop_fetcher', seconds=60, misfire_grace_time=900)
@@ -54,9 +54,9 @@ def job_pocsag_sender():
 #     fetcher_maildrop.make_data()
 
 
-# @scheduler.scheduled_job('cron', id='do_job_celebrations_fetcher', hour=0, minute=0)
-# def job_celebrations_fetcher():
-#     fetcher_celebrations.make_data()
+@scheduler.scheduled_job('cron', id='do_job_celebrations', hour=0, minute=0)
+def job_make_celebrations():
+    job_messages.make_celebrations()
 
 
 scheduler.start()

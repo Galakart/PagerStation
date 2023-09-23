@@ -44,6 +44,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         compare_type=True,
+        render_as_batch=True,
         dialect_opts={"paramstyle": "named"},
     )
 
@@ -66,9 +67,11 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, 
+            connection=connection,
             target_metadata=target_metadata,
-            compare_type=True,
+            compare_type=True,  # для отслеживания смены типа колонок
+            render_as_batch=True,  # для поддержки ALTER TABLE в sqlite3
+            # строчки выше также добавлены в run_migrations_offline()
         )
 
         with context.begin_transaction():

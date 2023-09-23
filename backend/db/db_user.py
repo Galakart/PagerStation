@@ -66,7 +66,8 @@ def get_users_with_birthday(session: Session, offset=None, limit=None):
         .where(
             and_(
                 extract('month', User.datar) == today_date.month,
-                extract('day', User.datar) == today_date.day
+                extract('day', User.datar) == today_date.day,
+                User.pagers != None,
             )
         )
         .offset(offset)
@@ -74,13 +75,3 @@ def get_users_with_birthday(session: Session, offset=None, limit=None):
     )
     users = result.scalars().all()
     return users
-
-
-# def get_user_pagers(uid_user: uuid.UUID):
-#     session = Session()
-#     user = session.query(User).get(uid_user)
-#     pagers = None
-#     if user:
-#         pagers = user.pagers
-#     session.close()
-#     return pagers

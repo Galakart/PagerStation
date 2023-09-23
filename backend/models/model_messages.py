@@ -5,8 +5,9 @@ from enum import Enum, unique
 from typing import Optional
 
 from pydantic import BaseModel, Field
-from sqlalchemy import (BigInteger, Boolean, Column, DateTime, ForeignKey,
-                        Integer, String, Text, Uuid)
+from sqlalchemy import (BigInteger, Boolean, DateTime, ForeignKey, Integer,
+                        String, Text, Uuid)
+from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.constants import MESSAGE_MAX_LENGTH
 
@@ -41,39 +42,39 @@ class MessageType(Base):
     __tablename__ = 'n_message_types'
     __table_args__ = {"comment": "Типы сообщений"}
 
-    id = Column(Integer, primary_key=True, autoincrement=False)
-    name = Column(String(50), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 
 
 class GroupType(Base):
     __tablename__ = 'n_group_types'
     __table_args__ = {"comment": "Типы групповых сообщений"}
 
-    id = Column(Integer, primary_key=True, autoincrement=False)
-    name = Column(String(50), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 
 
 class MailDropType(Base):
     __tablename__ = 'n_maildrop_types'
     __table_args__ = {"comment": "Типы новостных рассылок"}
 
-    id = Column(Integer, primary_key=True, autoincrement=False)
-    name = Column(String(50), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 
 
 class Message(Base):
     __tablename__ = 'messages'
     __table_args__ = {"comment": "Сообщения"}
 
-    uid = Column(Uuid, primary_key=True)
-    id_message_type = Column(Integer, ForeignKey('n_message_types.id'), nullable=False)
-    id_pager = Column(Integer, ForeignKey('pagers.id'), comment="указывается если сообщение личное (id_message_type=1)")
-    id_group_type = Column(Integer, ForeignKey('n_group_types.id'), comment="указывается если сообщение групповое (id_message_type=2)")
-    id_maildrop_type = Column(Integer, ForeignKey('n_maildrop_types.id'), comment="указывается если сообщение новостное (id_message_type=3)")
-    message = Column(String(MESSAGE_MAX_LENGTH), nullable=False)
-    sent = Column(Boolean, nullable=False, default=False)
-    datetime_send_after = Column(DateTime, comment='Отправить после указанной даты-времени')
-    datetime_create = Column(DateTime, nullable=False, default=datetime.datetime.now)
+    uid: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
+    id_message_type: Mapped[int] = mapped_column(Integer, ForeignKey('n_message_types.id'), nullable=False)
+    id_pager: Mapped[int] = mapped_column(Integer, ForeignKey('pagers.id'), nullable=True, comment="указывается если сообщение личное (id_message_type=1)")
+    id_group_type: Mapped[int] = mapped_column(Integer, ForeignKey('n_group_types.id'), nullable=True, comment="указывается если сообщение групповое (id_message_type=2)")
+    id_maildrop_type: Mapped[int] = mapped_column(Integer, ForeignKey('n_maildrop_types.id'), nullable=True, comment="указывается если сообщение новостное (id_message_type=3)")
+    message: Mapped[str] = mapped_column(String(MESSAGE_MAX_LENGTH), nullable=False)
+    sent: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    datetime_send_after: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=True, comment='Отправить после указанной даты-времени')
+    datetime_create: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, default=datetime.datetime.now)
 
 
 class MessageSchema(BaseModel):
@@ -113,11 +114,11 @@ class GroupChannel(Base):
     __tablename__ = 'channels_group'
     __table_args__ = {"comment": "Групповые каналы трансмиттера"}
 
-    id_transmitter = Column(Integer, ForeignKey('transmitters.id'), primary_key=True)
-    capcode = Column(Integer, primary_key=True)
-    id_fbit = Column(Integer, ForeignKey('n_fbits.id'), primary_key=True)
-    id_group_type = Column(Integer, ForeignKey('n_group_types.id'), nullable=False)
-    id_codepage = Column(Integer, ForeignKey('n_codepages.id'), nullable=False)
+    id_transmitter: Mapped[int] = mapped_column(Integer, ForeignKey('transmitters.id'), primary_key=True)
+    capcode: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id_fbit: Mapped[int] = mapped_column(Integer, ForeignKey('n_fbits.id'), primary_key=True)
+    id_group_type: Mapped[int] = mapped_column(Integer, ForeignKey('n_group_types.id'), nullable=False)
+    id_codepage: Mapped[int] = mapped_column(Integer, ForeignKey('n_codepages.id'), nullable=False)
 
 
 class GroupChannelSchema(BaseModel):
@@ -147,11 +148,11 @@ class MailDropChannel(Base):
     __tablename__ = 'channels_maildrop'
     __table_args__ = {"comment": "Новостные каналы трансмиттера"}
 
-    id_transmitter = Column(Integer, ForeignKey('transmitters.id'), primary_key=True)
-    capcode = Column(Integer, primary_key=True)
-    id_fbit = Column(Integer, ForeignKey('n_fbits.id'), primary_key=True)
-    id_maildrop_type = Column(Integer, ForeignKey('n_maildrop_types.id'), nullable=False)
-    id_codepage = Column(Integer, ForeignKey('n_codepages.id'), nullable=False)
+    id_transmitter: Mapped[int] = mapped_column(Integer, ForeignKey('transmitters.id'), primary_key=True)
+    capcode: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id_fbit: Mapped[int] = mapped_column(Integer, ForeignKey('n_fbits.id'), primary_key=True)
+    id_maildrop_type: Mapped[int] = mapped_column(Integer, ForeignKey('n_maildrop_types.id'), nullable=False)
+    id_codepage: Mapped[int] = mapped_column(Integer, ForeignKey('n_codepages.id'), nullable=False)
 
 
 class MailDropChannelSchema(BaseModel):
@@ -181,7 +182,7 @@ class MaildropRssFeed(Base):
     __tablename__ = 'rss_feeds'
     __table_args__ = {"comment": "RSS-ленты"}
 
-    id = Column(BigInteger, primary_key=True)
-    id_maildrop_type = Column(Integer, ForeignKey('n_maildrop_types.id'), nullable=False, unique=True)
-    feed_link = Column(Text, nullable=False)
-    datetime_create = Column(DateTime, nullable=False, default=datetime.datetime.now)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    id_maildrop_type: Mapped[int] = mapped_column(Integer, ForeignKey('n_maildrop_types.id'), nullable=False, unique=True)
+    feed_link: Mapped[str] = mapped_column(Text, nullable=False)
+    datetime_create: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, default=datetime.datetime.now)

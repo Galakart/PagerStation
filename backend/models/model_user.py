@@ -4,30 +4,23 @@ import uuid
 from typing import Optional
 
 from pydantic import BaseModel, Field
-from sqlalchemy import Column, Date, ForeignKey, Integer, String, Table, Uuid
-from sqlalchemy.orm import relationship
+from sqlalchemy import Date, String, Uuid
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
+from .model_secondaries import user_pagers
 
 # pylint: disable=missing-class-docstring,too-few-public-methods
-
-
-user_pagers = Table(
-    "user_pagers",
-    Base.metadata,
-    Column("uid_user", Uuid, ForeignKey("users.uid")),
-    Column("id_pager", Integer, ForeignKey("pagers.id")),
-)
 
 
 class User(Base):
     __tablename__ = 'users'
     __table_args__ = {"comment": "Пользователи пейджеров"}
 
-    uid = Column(Uuid, primary_key=True)
-    fio = Column(String(200), nullable=False)
-    datar = Column(Date)
-    pagers = relationship('Pager', secondary=user_pagers, back_populates='users')
+    uid: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
+    fio: Mapped[str] = mapped_column(String(200), nullable=False)
+    datar: Mapped[datetime.date] = mapped_column(Date, nullable=True)
+    pagers: Mapped[list] = relationship('Pager', secondary=user_pagers, back_populates='users')
 
 
 class UserSchema(BaseModel):
@@ -41,6 +34,9 @@ class UserSchema(BaseModel):
     datar: Optional[datetime.date] = Field(
         title="Дата рождения пользователя",
         examples=[datetime.date(1991, 7, 12)],
+    )
+    pagers: Optional[list] = Field(
+        title="Пейджеры пользователя"
     )
 
     class Config:

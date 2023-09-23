@@ -1,12 +1,13 @@
 import datetime
+import random
 
-from backend.db import db_hardware, db_messages
+from backend.db import db_hardware, db_messages, db_user
 from backend.db.connection import SessionLocal
-from backend.models.model_messages import MessageTypeEnum
+from backend.models.model_messages import MessageSchema, MessageTypeEnum
 from backend.pocsag_ops import pocsag_sender
 
 
-def send_messages() -> bool:
+def send_messages():
     """Проверка и отправка неотправленных сообщений"""
     today_datetime = datetime.datetime.now()
     with SessionLocal() as session:
@@ -57,4 +58,27 @@ def send_messages() -> bool:
     #                            transmitter_item.freq, baudrate_item.name, codepage_item.id, unsent_message_maildrop_item.message)
     #             db.db_messages.mark_message_maildrop_sent(unsent_message_maildrop_item.id)
 
-    return True
+
+def make_celebrations():
+    """Создаём праздничное настроение и формируем поздравительные сообщения"""
+    today_date = datetime.date.today()
+    with SessionLocal() as session:
+        users_tuple = db_user.get_users_with_birthday(session)
+        for user_item in users_tuple:
+            datetime_send_after = datetime.datetime(
+                year=today_date.year,
+                month=today_date.month,
+                day=today_date.day,
+                hour=random.randint(9, 14),
+                minute=random.randint(0, 59),
+                second=random.randint(0, 59),
+            )
+
+            message_schema_item = MessageSchema(
+                id_message_type=MessageTypeEnum.PRIVATE.value,
+                id_pager=user_item.pagers[0].id,  # отправим поздравление только на один пейджер пользователя
+                message='Поздравляем с днём рождения!!!',
+                datetime_send_after=datetime_send_after
+            )
+
+            db_messages.create_message(session, message_schema_item)

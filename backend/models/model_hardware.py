@@ -3,11 +3,11 @@ from enum import Enum, unique
 from typing import Optional
 
 from pydantic import BaseModel, Field
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
+from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
-from .model_user import user_pagers
+from .model_secondaries import user_pagers
 
 # pylint: disable=missing-class-docstring,too-few-public-methods
 
@@ -38,34 +38,34 @@ class Baudrate(Base):
     __tablename__ = 'n_baudrates'
     __table_args__ = {"comment": "Скорости передачи данных"}
 
-    id = Column(Integer, primary_key=True, autoincrement=False)
-    name = Column(String(4), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    name: Mapped[str] = mapped_column(String(4), unique=True, nullable=False)
 
 
 class Fbit(Base):
     __tablename__ = 'n_fbits'
     __table_args__ = {"comment": "Источники (функциональные биты)"}
 
-    id = Column(Integer, primary_key=True, autoincrement=False)
-    name = Column(String(1), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    name: Mapped[str] = mapped_column(String(1), unique=True, nullable=False)
 
 
 class Codepage(Base):
     __tablename__ = 'n_codepages'
     __table_args__ = {"comment": "Кодировки текста"}
 
-    id = Column(Integer, primary_key=True, autoincrement=False)
-    name = Column(String(8), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    name: Mapped[str] = mapped_column(String(8), unique=True, nullable=False)
 
 
 class Transmitter(Base):
     __tablename__ = 'transmitters'
     __table_args__ = {"comment": "Передатчики"}
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(50), unique=True, nullable=False)
-    freq = Column(Integer, unique=True, nullable=False)
-    id_baudrate = Column(Integer, ForeignKey('n_baudrates.id'), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    freq: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)
+    id_baudrate: Mapped[int] = mapped_column(Integer, ForeignKey('n_baudrates.id'), nullable=False)
 
 
 class TransmitterSchema(BaseModel):
@@ -93,12 +93,12 @@ class Pager(Base):
     __tablename__ = 'pagers'
     __table_args__ = {"comment": "Пейджеры"}
 
-    id = Column(Integer, primary_key=True, autoincrement=False)  # абонентский номер
-    capcode = Column(Integer, nullable=False)
-    id_fbit = Column(Integer, ForeignKey('n_fbits.id'), nullable=False)
-    id_codepage = Column(Integer, ForeignKey('n_codepages.id'), nullable=False)
-    id_transmitter = Column(Integer, ForeignKey('transmitters.id'), nullable=False)
-    users = relationship('User', secondary=user_pagers, back_populates='pagers')
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)  # абонентский номер
+    capcode: Mapped[int] = mapped_column(Integer, nullable=False)
+    id_fbit: Mapped[int] = mapped_column(Integer, ForeignKey('n_fbits.id'), nullable=False)
+    id_codepage: Mapped[int] = mapped_column(Integer, ForeignKey('n_codepages.id'), nullable=False)
+    id_transmitter: Mapped[int] = mapped_column(Integer, ForeignKey('transmitters.id'), nullable=False)
+    users: Mapped[list] = relationship('User', secondary=user_pagers, back_populates='pagers')
 
 
 class PagerSchema(BaseModel):
@@ -118,6 +118,9 @@ class PagerSchema(BaseModel):
     )
     id_transmitter: int = Field(
         title="id передатчика",
+    )
+    users: Optional[list] = Field(
+        title="Пользователи пейджера"
     )
 
     class Config:
