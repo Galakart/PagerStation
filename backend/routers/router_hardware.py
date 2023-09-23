@@ -6,9 +6,6 @@ from backend.db import db_hardware
 from backend.db.connection import get_session
 from backend.models.model_hardware import PagerSchema, TransmitterSchema
 
-# TODO UUID Primary keys https://fastapi.tiangolo.com/tutorial/extra-data-types/
-
-
 router = APIRouter(
     prefix="/hardware",
     tags=["hardware"],
@@ -16,14 +13,15 @@ router = APIRouter(
 
 
 @router.get("/transmitters/", response_model=list[TransmitterSchema])
-def get_transmitters(session: Session = Depends(get_session), offset: int = 0, limit: int = const.LIMIT_GET):
+def get_transmitters(offset: int = 0, limit: int = const.LIMIT_GET, session: Session = Depends(get_session)):
     """Вывод всех передатчиков"""
+    #TODO нужны ли стандартные значения в offset и limit
     transmitters_tuple = db_hardware.get_transmitters(session, offset, limit)
     return transmitters_tuple
 
 
 @router.get("/transmitters/{id_transmitter}", response_model=TransmitterSchema)
-def get_transmitter(session: Session = Depends(get_session), id_transmitter: int = 0):
+def get_transmitter(id_transmitter: int, session: Session = Depends(get_session)):
     """Вывод конкретного передатчика"""
     transmitter_item = db_hardware.get_transmitter(session, id_transmitter)
     if not transmitter_item:
@@ -32,7 +30,7 @@ def get_transmitter(session: Session = Depends(get_session), id_transmitter: int
 
 
 @router.post("/transmitters/", response_model=TransmitterSchema, status_code=status.HTTP_201_CREATED)
-def create_transmitter(session: Session = Depends(get_session), transmitter_schema_item: TransmitterSchema = None):
+def create_transmitter(transmitter_schema_item: TransmitterSchema, session: Session = Depends(get_session)):
     """Добавление передатчика"""
     transmitter_item = db_hardware.create_transmitter(session, transmitter_schema_item)
     if not transmitter_item:
@@ -41,7 +39,7 @@ def create_transmitter(session: Session = Depends(get_session), transmitter_sche
 
 
 @router.put("/transmitters/{id_transmitter}", response_model=TransmitterSchema)
-def update_transmitter(session: Session = Depends(get_session), id_transmitter: int = 0, transmitter_schema_item: TransmitterSchema = None):
+def update_transmitter(id_transmitter: int, transmitter_schema_item: TransmitterSchema, session: Session = Depends(get_session)):
     """Редактирование передатчика"""
     transmitter_item = db_hardware.get_transmitter(session, id_transmitter)
     if not transmitter_item:
@@ -54,7 +52,7 @@ def update_transmitter(session: Session = Depends(get_session), id_transmitter: 
 
 
 @router.delete("/transmitters/{id_transmitter}", response_model=TransmitterSchema)
-def delete_transmitter(session: Session = Depends(get_session), id_transmitter: int = 0):
+def delete_transmitter(id_transmitter: int, session: Session = Depends(get_session)):
     """Удаление передатчика"""
     transmitter_item = db_hardware.get_transmitter(session, id_transmitter)
     if not transmitter_item:
@@ -67,14 +65,14 @@ def delete_transmitter(session: Session = Depends(get_session), id_transmitter: 
 
 
 @router.get("/pagers/", response_model=list[PagerSchema])
-def get_pagers(session: Session = Depends(get_session), offset: int = 0, limit: int = const.LIMIT_GET):
+def get_pagers(offset: int = 0, limit: int = const.LIMIT_GET, session: Session = Depends(get_session)):
     """Вывод всех пейджеров"""
     pagers_tuple = db_hardware.get_pagers(session, offset, limit)
     return pagers_tuple
 
 
 @router.get("/pagers/{id_pager}", response_model=PagerSchema)
-def get_pager(session: Session = Depends(get_session), id_pager: int = 0):
+def get_pager(id_pager: int, session: Session = Depends(get_session)):
     """Вывод конкретного пейджера"""
     pager_item = db_hardware.get_pager(session, id_pager)
     if not pager_item:
@@ -83,7 +81,7 @@ def get_pager(session: Session = Depends(get_session), id_pager: int = 0):
 
 
 @router.post("/pagers/", response_model=PagerSchema, status_code=status.HTTP_201_CREATED)
-def create_pager(session: Session = Depends(get_session), pager_schema_item: PagerSchema = None):
+def create_pager(pager_schema_item: PagerSchema, session: Session = Depends(get_session)):
     """Добавление пейджера"""
     pager_item = db_hardware.create_pager(session, pager_schema_item)
     if not pager_item:
@@ -92,7 +90,7 @@ def create_pager(session: Session = Depends(get_session), pager_schema_item: Pag
 
 
 @router.put("/pagers/{id_pager}", response_model=PagerSchema)
-def update_pager(session: Session = Depends(get_session), id_pager: int = 0, pager_schema_item: PagerSchema = None):
+def update_pager(id_pager: int, pager_schema_item: PagerSchema, session: Session = Depends(get_session)):
     """Редактирование пейджера"""
     pager_item = db_hardware.get_pager(session, id_pager)
     if not pager_item:
@@ -105,7 +103,7 @@ def update_pager(session: Session = Depends(get_session), id_pager: int = 0, pag
 
 
 @router.delete("/pagers/{id_pager}", response_model=PagerSchema)
-def delete_pager(session: Session = Depends(get_session), id_pager: int = 0):
+def delete_pager(id_pager: int, session: Session = Depends(get_session)):
     """Удаление пейджера"""
     pager_item = db_hardware.get_pager(session, id_pager)
     if not pager_item:

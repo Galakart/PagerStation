@@ -1,5 +1,6 @@
 import datetime
 import logging
+import uuid
 
 from sqlalchemy import and_, extract, select
 from sqlalchemy.orm import Session
@@ -19,13 +20,14 @@ def get_users(session: Session, offset=None, limit=None):
     return users
 
 
-def get_user(session: Session, id_user: int) -> User:
-    user = session.get(User, id_user)
+def get_user(session: Session, uid_user: uuid.UUID) -> User:
+    user = session.get(User, uid_user)
     return user
 
 
 def create_user(session: Session, user_schema_item: UserSchema) -> User:
     user = User(
+        uid=uuid.uuid4(),
         fio=user_schema_item.fio,
         datar=user_schema_item.datar,
     )
@@ -35,8 +37,8 @@ def create_user(session: Session, user_schema_item: UserSchema) -> User:
     return user
 
 
-def update_user(session: Session, id_user: int, user_schema_item: UserSchema) -> User:
-    user = session.get(User, id_user)
+def update_user(session: Session, uid_user: uuid.UUID, user_schema_item: UserSchema) -> User:
+    user = session.get(User, uid_user)
     if user:
         user.fio = user_schema_item.fio
         user.datar = user_schema_item.datar
@@ -47,9 +49,9 @@ def update_user(session: Session, id_user: int, user_schema_item: UserSchema) ->
     return user
 
 
-def delete_user(session: Session, id_user: int) -> bool:
+def delete_user(session: Session, uid_user: uuid.UUID) -> bool:
     result = False
-    user = session.get(User, id_user)
+    user = session.get(User, uid_user)
     if user:
         session.delete(user)
         session.commit()
@@ -74,9 +76,9 @@ def get_users_with_birthday(session: Session, offset=None, limit=None):
     return users
 
 
-# def get_user_pagers(id_user: int):
+# def get_user_pagers(uid_user: uuid.UUID):
 #     session = Session()
-#     user = session.query(User).get(id_user)
+#     user = session.query(User).get(uid_user)
 #     pagers = None
 #     if user:
 #         pagers = user.pagers

@@ -78,7 +78,7 @@ class TransmitterSchema(BaseModel):
     freq: int = Field(
         title="Частота, Гц",
         examples=[159025000],
-        gt=0,
+        gt=60000000,
         lt=999999999,
     )
     id_baudrate: BaudrateEnum = Field(
@@ -93,7 +93,7 @@ class Pager(Base):
     __tablename__ = 'pagers'
     __table_args__ = {"comment": "Пейджеры"}
 
-    id = Column(Integer, primary_key=True, autoincrement=False, comment='Абонентский номер')
+    id = Column(Integer, primary_key=True, autoincrement=False)  # абонентский номер
     capcode = Column(Integer, nullable=False)
     id_fbit = Column(Integer, ForeignKey('n_fbits.id'), nullable=False)
     id_codepage = Column(Integer, ForeignKey('n_codepages.id'), nullable=False)

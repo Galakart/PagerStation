@@ -1,6 +1,5 @@
 """Операции с пейджинговыми сообщениями"""
-import logging
-
+import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -17,17 +16,18 @@ def get_messages(session: Session, offset=None, limit=None):
     return messages
 
 
-def get_message(session: Session, id_message: int) -> Message:
-    message = session.get(Message, id_message)
+def get_message(session: Session, uid_message: uuid.UUID) -> Message:
+    message = session.get(Message, uid_message)
     return message
 
 
 def create_message(session: Session, message_schema_item: MessageSchema) -> Message:
     message = Message(
+        uid=uuid.uuid4(),
         id_message_type=message_schema_item.id_message_type.value,
         id_pager=message_schema_item.id_pager,
-        id_group_type=message_schema_item.id_group_type.value,
-        id_maildrop_type=message_schema_item.id_maildrop_type.value,
+        id_group_type=message_schema_item.id_group_type.value if message_schema_item.id_group_type else None,
+        id_maildrop_type=message_schema_item.id_maildrop_type.value if message_schema_item.id_maildrop_type else None,
         message=message_schema_item.message,
         datetime_send_after=message_schema_item.datetime_send_after,
     )
@@ -37,9 +37,9 @@ def create_message(session: Session, message_schema_item: MessageSchema) -> Mess
     return message
 
 
-def delete_message(session: Session, id_message: int) -> bool:
+def delete_message(session: Session, uid_message: uuid.UUID) -> bool:
     result = False
-    message = session.get(Message, id_message)
+    message = session.get(Message, uid_message)
     # TODO выдавать ошибку если сообщение уже отправлено
     if message and not message.sent:
         session.delete(message)
@@ -48,9 +48,9 @@ def delete_message(session: Session, id_message: int) -> bool:
     return result
 
 
-def mark_message_sent(session: Session, id_message: int) -> bool:
+def mark_message_sent(session: Session, uid_message: uuid.UUID) -> bool:
     result = False
-    message = session.get(Message, id_message)
+    message = session.get(Message, uid_message)
     if message:
         message.sent = True
         session.add(message)

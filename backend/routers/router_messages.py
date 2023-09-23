@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -13,38 +15,39 @@ router = APIRouter(
 
 
 @router.get("/messages/", response_model=list[MessageSchema])
-def get_messages(session: Session = Depends(get_session), offset: int = 0, limit: int = const.LIMIT_GET):
+def get_messages(offset: int = 0, limit: int = const.LIMIT_GET, session: Session = Depends(get_session)):
     """Вывод всех сообщений"""
     messages_tuple = db_messages.get_messages(session, offset, limit)
     return messages_tuple
 
 
-@router.get("/messages/{id_message}", response_model=MessageSchema)
-def get_message(session: Session = Depends(get_session), id_message: int = 0):
+@router.get("/messages/{uid_message}", response_model=MessageSchema)
+def get_message(uid_message: uuid.UUID, session: Session = Depends(get_session)):
     """Вывод конкретного сообщения"""
-    message_item = db_messages.get_message(session, id_message)
+    message_item = db_messages.get_message(session, uid_message)
     if not message_item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Сообщение не найдено")
     return message_item
 
 
 @router.post("/messages/", response_model=MessageSchema, status_code=status.HTTP_201_CREATED)
-def create_message(session: Session = Depends(get_session), message_schema_item: MessageSchema = None):
+def create_message(message_schema_item: MessageSchema, session: Session = Depends(get_session)):
     """Создание сообщения"""
+    # TODO скрывать лишние поля, типа как response_model_exclude={"sent", "date_create"}
     message_item = db_messages.create_message(session, message_schema_item)
     if not message_item:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка создания сообщения")
     return message_item
 
 
-@router.delete("/messages/{id_message}", response_model=MessageSchema)
-def delete_message(session: Session = Depends(get_session), id_message: int = 0):
+@router.delete("/messages/{uid_message}", response_model=MessageSchema)
+def delete_message(uid_message: uuid.UUID, session: Session = Depends(get_session)):
     """Удаление сообщения"""
-    message_item = db_messages.get_message(session, id_message)
+    message_item = db_messages.get_message(session, uid_message)
     if not message_item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Сообщение не найдено")
 
-    result = db_messages.delete_message(session, id_message)
+    result = db_messages.delete_message(session, uid_message)
     if not result:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка удаления сообщения")
     return message_item

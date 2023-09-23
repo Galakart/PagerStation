@@ -1,11 +1,14 @@
 """Модели сообщений"""
 import datetime
+import uuid
 from enum import Enum, unique
 from typing import Optional
 
 from pydantic import BaseModel, Field
 from sqlalchemy import (BigInteger, Boolean, Column, DateTime, ForeignKey,
-                        Integer, String, Text)
+                        Integer, String, Text, Uuid)
+
+from backend.constants import MESSAGE_MAX_LENGTH
 
 from .base import Base
 from .model_hardware import CodepageEnum, FbitEnum
@@ -62,42 +65,43 @@ class Message(Base):
     __tablename__ = 'messages'
     __table_args__ = {"comment": "Сообщения"}
 
-    id = Column(Integer, primary_key=True)
+    uid = Column(Uuid, primary_key=True)
     id_message_type = Column(Integer, ForeignKey('n_message_types.id'), nullable=False)
     id_pager = Column(Integer, ForeignKey('pagers.id'), comment="указывается если сообщение личное (id_message_type=1)")
     id_group_type = Column(Integer, ForeignKey('n_group_types.id'), comment="указывается если сообщение групповое (id_message_type=2)")
     id_maildrop_type = Column(Integer, ForeignKey('n_maildrop_types.id'), comment="указывается если сообщение новостное (id_message_type=3)")
-    message = Column(String(950), nullable=False)
+    message = Column(String(MESSAGE_MAX_LENGTH), nullable=False)
     sent = Column(Boolean, nullable=False, default=False)
     datetime_send_after = Column(DateTime, comment='Отправить после указанной даты-времени')
-    date_create = Column(DateTime, nullable=False, default=datetime.datetime.now)
+    datetime_create = Column(DateTime, nullable=False, default=datetime.datetime.now)
 
 
 class MessageSchema(BaseModel):
-    id: Optional[int]
+    uid: Optional[uuid.UUID]
     id_message_type: MessageTypeEnum = Field(
         title="Тип сообщения",
     )
-    id_pager: int = Field(
+    # TODO добавить проверку, если id_message_type=1, то обязательно указывать id_pager, итд для остальных типов
+    id_pager: Optional[int] = Field(
         title="id пейджера (для личных сообщений)",
     )
-    id_group_type: GroupTypeEnum = Field(
+    id_group_type: Optional[GroupTypeEnum] = Field(
         title="Тип группового сообщения (для групповых сообщений)",
     )
-    id_maildrop_type: MaildropTypeEnum = Field(
+    id_maildrop_type: Optional[MaildropTypeEnum] = Field(
         title="Тип новостного сообщения (для новостных сообщений)",
     )
     message: str = Field(
         title="Текст сообщения",
-        max_length=950,
+        max_length=MESSAGE_MAX_LENGTH,
     )
-    sent: bool = Field(
-        title="отправлено ли передатчиком",
+    sent: Optional[bool] = Field(
+        title="отправлено ли передатчиком"
     )
-    datetime_send_after: datetime.datetime = Field(
+    datetime_send_after: Optional[datetime.datetime] = Field(
         title="после какого времени отправить",
     )
-    date_create: datetime.datetime = Field(
+    datetime_create: Optional[datetime.datetime] = Field(
         title="Дата и время отправки",
     )
 
@@ -141,7 +145,7 @@ class GroupChannelSchema(BaseModel):
 
 class MailDropChannel(Base):
     __tablename__ = 'channels_maildrop'
-    __table_args__ = {"comment": "Новостные каналы трансмиттера, и их капкоды"}
+    __table_args__ = {"comment": "Новостные каналы трансмиттера"}
 
     id_transmitter = Column(Integer, ForeignKey('transmitters.id'), primary_key=True)
     capcode = Column(Integer, primary_key=True)
@@ -173,7 +177,7 @@ class MailDropChannelSchema(BaseModel):
         orm_mode = True
 
 
-class RssFeed(Base):
+class MaildropRssFeed(Base):
     __tablename__ = 'rss_feeds'
     __table_args__ = {"comment": "RSS-ленты"}
 
