@@ -1,6 +1,7 @@
 """Операции с пейджинговыми сообщениями"""
 import uuid
-from sqlalchemy import select
+
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from backend.models.model_messages import Message, MessageSchema
@@ -48,6 +49,21 @@ def delete_message(session: Session, uid_message: uuid.UUID) -> bool:
     return result
 
 
+def get_unsent_messages(session: Session, id_message_type: int):
+    result = session.execute(
+        select(Message)
+        .where(
+            and_(
+                Message.id_message_type == id_message_type,
+                Message.sent == False,
+            )
+        )
+        .limit(5)
+    )
+    messages = result.scalars().all()
+    return messages
+
+
 def mark_message_sent(session: Session, uid_message: uuid.UUID) -> bool:
     result = False
     message = session.get(Message, uid_message)
@@ -57,20 +73,6 @@ def mark_message_sent(session: Session, uid_message: uuid.UUID) -> bool:
         session.commit()
         result = True
     return result
-
-
-# def get_unsent_messages_private():
-#     session = Session()
-#     values_tuple = session.query(MessagePrivate).filter(MessagePrivate.sent == 0).limit(10).all()
-#     session.close()
-#     return values_tuple
-
-
-# def get_unsent_messages_maildrop():
-#     session = Session()
-#     values_tuple = session.query(MessageMailDrop).filter(MessageMailDrop.sent == 0).limit(10).all()
-#     session.close()
-#     return values_tuple
 
 
 # def get_maildrop_channels_by_type(id_maildrop_type: int) -> MailDropChannels:

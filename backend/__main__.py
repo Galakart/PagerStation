@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # from backend.jobs import fetcher_celebrations, fetcher_maildrop
-# from backend.jobs import pocsag_messages
+from backend.jobs import pocsag_messages
 from backend.routers import (router_hardware, router_messages, router_users,
                              router_utils)
 
@@ -41,11 +41,12 @@ file_handler = TimedRotatingFileHandler(
 )
 file_handler.setFormatter(logging.Formatter('%(asctime)s  %(filename)s  %(funcName)s  %(lineno)d  %(name)s  %(levelname)s: %(message)s'))
 LOGGER.addHandler(file_handler)
+logging.getLogger('apscheduler.executors.default').setLevel(logging.WARNING)
 
 
-# @scheduler.scheduled_job('interval', id='do_job_pocsag_sender', seconds=5, misfire_grace_time=900)
-# def job_pocsag_sender():
-#     pocsag_messages.send_messages()
+@scheduler.scheduled_job('interval', id='do_job_pocsag_messages', seconds=5, misfire_grace_time=900)
+def job_pocsag_sender():
+    pocsag_messages.send_messages()
 
 
 # @scheduler.scheduled_job('interval', id='do_job_maildrop_fetcher', seconds=60, misfire_grace_time=900)
@@ -58,7 +59,7 @@ LOGGER.addHandler(file_handler)
 #     fetcher_celebrations.make_data()
 
 
-# scheduler.start()
+scheduler.start()
 
 
 if __name__ == "__main__":  # режим отладки, запуск через "python -m backend"
