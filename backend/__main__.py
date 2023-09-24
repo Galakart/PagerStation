@@ -10,8 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # from backend.jobs import fetcher_celebrations, fetcher_maildrop
 from backend.jobs import job_messages
-from backend.routers import (router_hardware, router_messages, router_users,
-                             router_utils)
+from backend.routers import (router_channels, router_hardware, router_messages,
+                             router_users, router_utils)
 
 app = FastAPI()
 app.add_middleware(
@@ -22,8 +22,9 @@ app.add_middleware(
     allow_credentials=True,
 )
 scheduler = BackgroundScheduler()
-app.include_router(router_users.router)
 app.include_router(router_hardware.router)
+app.include_router(router_channels.router)
+app.include_router(router_users.router)
 app.include_router(router_messages.router)
 app.include_router(router_utils.router)
 
@@ -44,7 +45,7 @@ LOGGER.addHandler(file_handler)
 logging.getLogger('apscheduler.executors.default').setLevel(logging.WARNING)
 
 
-@scheduler.scheduled_job('interval', id='do_job_pocsag_messages', seconds=5, misfire_grace_time=900)
+@scheduler.scheduled_job('interval', id='do_job_messages', seconds=5, misfire_grace_time=900)
 def job_send_messages():
     job_messages.send_messages()
 

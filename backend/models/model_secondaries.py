@@ -1,4 +1,4 @@
-"""Модели таблиц many-to-many"""
+"""Модели таблиц many-to-many, вынесены в отдельный файл чтобы избежать кольцевых импортов"""
 from sqlalchemy import Column, ForeignKey, Integer, Table, Uuid
 
 from .base import Base

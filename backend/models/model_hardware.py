@@ -1,5 +1,4 @@
 """Модели пейджеров"""
-from enum import Enum, unique
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -7,31 +6,10 @@ from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
+from .enums import BaudrateEnum, CodepageEnum, FbitEnum
 from .model_secondaries import user_pagers
 
 # pylint: disable=missing-class-docstring,too-few-public-methods
-
-
-@unique
-class BaudrateEnum(Enum):
-    BAUD_512 = 1
-    BAUD_1200 = 2
-    BAUD_2400 = 3
-
-
-@unique
-class FbitEnum(Enum):
-    BIT_0 = 0
-    BIT_1 = 1
-    BIT_2 = 2
-    BIT_3 = 3
-
-
-@unique
-class CodepageEnum(Enum):
-    LAT = 1
-    CYR = 2
-    LINGUIST = 3
 
 
 class Baudrate(Base):

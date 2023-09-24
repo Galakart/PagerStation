@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 import backend.constants as const
-from backend.db import db_user
+from backend.db import db_hardware, db_user
 from backend.db.connection import get_session
 from backend.models.model_user import UserSchema
 
@@ -62,6 +62,40 @@ def delete_user(uid_user: uuid.UUID, session: Session = Depends(get_session)):
     result = db_user.delete_user(session, uid_user)
     if not result:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка удаления пользователя")
+    return user_item
+
+
+@router.put("/pagers/", response_model=UserSchema)
+def register_user_pager(uid_user: uuid.UUID, id_pager: int, session: Session = Depends(get_session)):
+    """Привязка пейджера к пользователю"""
+    user_item = db_user.get_user(session, uid_user)
+    if not user_item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден")
+    pager_item = db_hardware.get_pager(session, id_pager)
+    if not pager_item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пейджер не найден")
+    if pager_item in user_item.pagers:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Пейджер уже зарегистрирован на пользователя")
+
+    user_item = db_user.register_user_pager(session, uid_user, id_pager)
+    if not user_item:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка привязки пейджера")
+    return user_item
+
+
+@router.delete("/pagers/", response_model=UserSchema)
+def unregister_user_pager(uid_user: uuid.UUID, id_pager: int, session: Session = Depends(get_session)):
+    """Удаление пейджера у пользователя"""
+    user_item = db_user.get_user(session, uid_user)
+    if not user_item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден")
+    pager_item = db_hardware.get_pager(session, id_pager)
+    if not pager_item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пейджер не найден")
+
+    user_item = db_user.unregister_user_pager(session, uid_user, id_pager)
+    if not user_item:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка отвязки пейджера")
     return user_item
 
 

@@ -5,6 +5,7 @@ import uuid
 from sqlalchemy import and_, extract, select
 from sqlalchemy.orm import Session
 
+from backend.models.model_hardware import Pager
 from backend.models.model_user import User, UserSchema
 
 LOGGER = logging.getLogger()
@@ -57,6 +58,27 @@ def delete_user(session: Session, uid_user: uuid.UUID) -> bool:
         session.commit()
         result = True
     return result
+
+
+def register_user_pager(session: Session, uid_user: uuid.UUID, id_pager: int) -> User:
+    user = session.get(User, uid_user)
+    pager = session.get(Pager, id_pager)
+    if user:
+        user.pagers.append(pager)
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+    return user
+
+
+def unregister_user_pager(session: Session, uid_user: uuid.UUID, id_pager: int) -> User:
+    user = session.get(User, uid_user)
+    pager = session.get(Pager, id_pager)
+    if user:
+        user.pagers.remove(pager)
+        session.add(user)
+        session.commit()
+    return user
 
 
 def get_users_with_birthday(session: Session, offset=None, limit=None):
