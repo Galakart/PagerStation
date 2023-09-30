@@ -2,10 +2,10 @@
 import datetime
 import uuid
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, desc, or_, select
 from sqlalchemy.orm import Session
 
-from backend.models.model_channels import GroupChannel, MailDropChannel
+from backend.models.model_channels import MaildropRssFeed
 from backend.models.model_messages import Message, MessageSchema
 
 
@@ -81,40 +81,27 @@ def mark_message_sent(session: Session, uid_message: uuid.UUID) -> bool:
     return result
 
 
-def get_group_channels_by_type(session: Session, id_group_type: int):
+def get_last_sent_maildrop_by_type(session: Session, id_maildrop_type: int) -> Message:
+    """Последнее отправленное MailDrop-сообщение"""
     result = session.execute(
-        select(GroupChannel)
+        select(Message)
         .where(
-            GroupChannel.id_group_type == id_group_type
+            Message.id_maildrop_type == id_maildrop_type
+        )
+        .order_by(desc(Message.datetime_create))
+    )
+    return result.scalar()
+
+
+# TODO определить в каком файле размещать всё про RSS
+
+
+def get_rss_feed_by_maildrop_type(session: Session, id_maildrop_type: int) -> MaildropRssFeed:
+    """Возвращает RSS-ленту, связанную с этим id_maildrop_type """
+    result = session.execute(
+        select(MaildropRssFeed)
+        .where(
+            MaildropRssFeed.id_maildrop_type == id_maildrop_type
         )
     )
-    channels = result.scalars().all()
-    return channels
-
-
-def get_maildrop_channels_by_type(session: Session, id_maildrop_type: int):
-    result = session.execute(
-        select(MailDropChannel)
-        .where(
-            MailDropChannel.id_maildrop_type == id_maildrop_type
-        )
-    )
-    channels = result.scalars().all()
-    return channels
-
-
-# def get_last_sent_maildrop_by_type(id_maildrop_type: int) -> MessageMailDrop:
-#     """Последнее отправленное MailDrop-сообщение"""
-#     session = Session()
-#     value = session.query(MessageMailDrop).filter(MessageMailDrop.id_maildrop_type ==
-#                                                   id_maildrop_type).order_by(desc(MessageMailDrop.id)).first()
-#     session.close()
-#     return value
-
-
-# def get_rss_feed_by_maildrop_type(id_maildrop_type: int) -> RssFeed:
-#     """Возвращает RSS-ленту, связанную с этим id_maildrop_type """
-#     session = Session()
-#     value = session.query(RssFeed).filter(RssFeed.id_maildrop_type == id_maildrop_type).first()
-#     session.close()
-#     return value
+    return result.scalar()

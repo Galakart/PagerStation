@@ -82,3 +82,27 @@ def delete_maildrop_channel(session: Session, id_transmitter: int, capcode: int,
         session.commit()
         result = True
     return result
+
+
+def get_group_channels_by_type(session: Session, id_group_type: int):
+    result = session.execute(
+        select(GroupChannel)
+        .where(
+            GroupChannel.id_group_type == id_group_type
+        )
+    )
+    channels = result.scalars().all()
+    return channels
+
+
+def get_maildrop_channels_by_type(session: Session, id_maildrop_type: int):
+    result = session.execute(
+        select(MailDropChannel)
+        .where(
+            MailDropChannel.id_maildrop_type == id_maildrop_type
+        )
+    )
+    channels = result.scalars().all()
+    return channels
+
+# TODO RSS rest api

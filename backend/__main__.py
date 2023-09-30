@@ -8,8 +8,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# from backend.jobs import fetcher_celebrations, fetcher_maildrop
-from backend.jobs import job_messages
+from backend.jobs import job_maildrop, job_messages
 from backend.routers import (router_channels, router_hardware, router_messages,
                              router_users, router_utils)
 
@@ -21,7 +20,6 @@ app.add_middleware(
     allow_headers=["*"],
     allow_credentials=True,
 )
-scheduler = BackgroundScheduler()
 app.include_router(router_hardware.router)
 app.include_router(router_channels.router)
 app.include_router(router_users.router)
@@ -45,22 +43,21 @@ LOGGER.addHandler(file_handler)
 logging.getLogger('apscheduler.executors.default').setLevel(logging.WARNING)
 
 
-@scheduler.scheduled_job('interval', id='do_job_messages', seconds=5, misfire_grace_time=900)
-def job_send_messages():
-    job_messages.send_messages()
+@app.on_event('startup')
+def start_scheduler():
+    scheduler = BackgroundScheduler()
+
+    scheduler.add_job(job_messages.send_messages, 'interval', id='do_job_messages', seconds=5, misfire_grace_time=900)
+    scheduler.add_job(job_maildrop.update_maildrop, 'interval', id='do_job_maildrop', seconds=60, misfire_grace_time=900)
+    scheduler.add_job(job_messages.check_celebrations, 'cron', id='do_job_check_celebrations', hour=0, minute=0)
+
+    scheduler.start()
+    app.state.scheduler = scheduler
 
 
-# @scheduler.scheduled_job('interval', id='do_job_maildrop_fetcher', seconds=60, misfire_grace_time=900)
-# def job_maildrop_fetcher():
-#     fetcher_maildrop.make_data()
-
-
-@scheduler.scheduled_job('cron', id='do_job_celebrations', hour=0, minute=0)
-def job_make_celebrations():
-    job_messages.make_celebrations()
-
-
-scheduler.start()
+@app.on_event('shutdown')
+def stop_scheduler():
+    app.state.scheduler.shutdown(wait=False)
 
 
 if __name__ == "__main__":  # режим отладки, запуск через "python -m backend"
