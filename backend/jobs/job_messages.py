@@ -35,7 +35,6 @@ def send_messages():
             elif message_item.id_message_type == MessageTypeEnum.GROUP.value:
                 group_channels_tuple = db_channels.get_group_channels_by_type(session, message_item.id_group_type)
                 if not group_channels_tuple:
-                    LOGGER.warning(f'Есть групповые сообщения для отправки, но нету доступных групповых каналов')
                     continue
 
                 result = False
@@ -57,7 +56,6 @@ def send_messages():
             elif message_item.id_message_type == MessageTypeEnum.MAILDROP.value:
                 maildrop_channels_tuple = db_channels.get_maildrop_channels_by_type(session, message_item.id_maildrop_type)
                 if not maildrop_channels_tuple:
-                    LOGGER.warning(f'Есть maildrop сообщения для отправки, но нету доступных maildrop каналов')
                     continue
 
                 result = False

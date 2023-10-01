@@ -3,7 +3,7 @@ import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
 
-import uvicorn
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,6 +26,11 @@ app.include_router(router_users.router)
 app.include_router(router_messages.router)
 app.include_router(router_utils.router)
 
+scheduler = BackgroundScheduler(
+    jobstores={
+        'default': SQLAlchemyJobStore(url='sqlite:///./database.db')
+    }
+)
 
 if not os.path.exists('logs'):
     os.makedirs('logs')
@@ -43,22 +48,23 @@ LOGGER.addHandler(file_handler)
 logging.getLogger('apscheduler.executors.default').setLevel(logging.WARNING)
 
 
-@app.on_event('startup')
-def start_scheduler():
-    scheduler = BackgroundScheduler()
-
-    scheduler.add_job(job_messages.send_messages, 'interval', id='do_job_messages', seconds=5, misfire_grace_time=900)
-    scheduler.add_job(job_maildrop.update_maildrop, 'interval', id='do_job_maildrop', seconds=60, misfire_grace_time=900)
-    scheduler.add_job(job_messages.check_celebrations, 'cron', id='do_job_check_celebrations', hour=0, minute=0)
-
-    scheduler.start()
-    app.state.scheduler = scheduler
+@scheduler.scheduled_job('interval', id='do_job_send_messages', seconds=5, misfire_grace_time=900)
+def job_send_messages():
+    job_messages.send_messages()
 
 
-@app.on_event('shutdown')
-def stop_scheduler():
-    app.state.scheduler.shutdown(wait=False)
+@scheduler.scheduled_job('interval', id='do_job_update_maildrop', seconds=60, misfire_grace_time=900)
+def job_update_maildrop_currency():
+    job_maildrop.update_maildrop()
 
 
-if __name__ == "__main__":  # режим отладки, запуск через "python -m backend"
-    uvicorn.run("backend.__main__:app", host="0.0.0.0", port=8099, reload=True)
+@scheduler.scheduled_job('cron', id='do_job_check_celebrations', hour=0, minute=0)
+def job_check_celebrations():
+    job_messages.check_celebrations()
+
+
+scheduler.start()
+
+
+# для запуска в режиме отладки (в консоли)
+# uvicorn backend.__main__:app --host 0.0.0.0 --port 8099 --reload
