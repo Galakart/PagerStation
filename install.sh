@@ -24,6 +24,7 @@ pip install -r requirements.txt
 alembic upgrade head
 deactivate
 "
+cp env_example .env
 
 # PyOWM 3.3.0 bug
 sed -i 's/assert sender,/assert sender is not None,/g' venv/lib/python*/site-packages/pyowm/weatherapi25/national_weather_alert.py
@@ -69,5 +70,6 @@ sudo systemctl daemon-reload
 sudo systemctl enable pagerstation
 
 echo ------------------------------------
-echo Installation complete
-echo PLEASE REBOOT YOUR RASPBERRY PI!!!
+echo Установка завершена
+echo Не забудьте открыть файл .env и установить в нём свои настройки, как написано в README
+echo ДЛЯ ЗАВЕРШЕНИЯ НАСТРОЙКИ ТРЕБУЕТСЯ ПЕРЕЗАГРУЗКА RASPBERRY PI!!!
