@@ -1,8 +1,8 @@
 """Класс с конфигурациями из переменных окружения"""
-from pydantic import BaseSettings, Extra, SecretStr
+from pydantic import BaseSettings, SecretStr
 
 
-class Settings(BaseSettings, extra=Extra.ignore):
+class Settings(BaseSettings):
     owm_token: SecretStr
     owm_latitude: str
     owm_longitude: str

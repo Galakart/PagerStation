@@ -10,3 +10,4 @@ SQLAlchemy==2.0.20
 sqlalchemy-repr==0.1.0
 transliterate==1.10.2
 uvicorn==0.23.2
+urllib3==1.26.16
