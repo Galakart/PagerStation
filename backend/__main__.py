@@ -28,7 +28,7 @@ app.include_router(router_utils.router)
 
 scheduler = BackgroundScheduler(
     jobstores={
-        'default': SQLAlchemyJobStore(url='sqlite:///./database.db')
+        'default': SQLAlchemyJobStore(url='sqlite:///./apscheduler.db')
     }
 )
 

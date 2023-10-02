@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session
 
 from backend.models.model_channels import (GroupChannel, GroupChannelSchema,
                                            MailDropChannel,
-                                           MailDropChannelSchema)
+                                           MailDropChannelSchema,
+                                           MaildropRssFeed,
+                                           MaildropRssFeedSchema)
 
 LOGGER = logging.getLogger()
 
@@ -105,4 +107,47 @@ def get_maildrop_channels_by_type(session: Session, id_maildrop_type: int):
     channels = result.scalars().all()
     return channels
 
-# TODO RSS rest api
+
+def get_rss_feeds(session: Session):
+    result = session.execute(
+        select(MaildropRssFeed)
+    )
+    feeds = result.scalars().all()
+    return feeds
+
+
+def get_rss_feed(session: Session, id_feed: int) -> MaildropRssFeed:
+    feed = session.get(MaildropRssFeed, id_feed)
+    return feed
+
+
+def create_rss_feed(session: Session, maildrop_rss_feed_schema_item: MaildropRssFeedSchema) -> MailDropChannel:
+    feed = MaildropRssFeed(
+        id_maildrop_type=maildrop_rss_feed_schema_item.id_maildrop_type.value,
+        feed_link=maildrop_rss_feed_schema_item.feed_link,
+    )
+    session.add(feed)
+    session.commit()
+    session.refresh(feed)
+    return feed
+
+
+def delete_rss_feed(session: Session, id_feed: int) -> bool:
+    result = False
+    feed = session.get(MaildropRssFeed, id_feed)
+    if feed:
+        session.delete(feed)
+        session.commit()
+        result = True
+    return result
+
+
+def get_rss_feed_by_maildrop_type(session: Session, id_maildrop_type: int) -> MaildropRssFeed:
+    """Возвращает RSS-ленту, связанную с этим id_maildrop_type """
+    result = session.execute(
+        select(MaildropRssFeed)
+        .where(
+            MaildropRssFeed.id_maildrop_type == id_maildrop_type
+        )
+    )
+    return result.scalar()

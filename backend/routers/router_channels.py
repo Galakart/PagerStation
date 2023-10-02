@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from backend.db import db_channels
 from backend.db.connection import get_session
 from backend.models.model_channels import (GroupChannelSchema,
-                                           MailDropChannelSchema)
+                                           MailDropChannelSchema,
+                                           MaildropRssFeedSchema)
 
 router = APIRouter(
     prefix="/channels",
@@ -70,3 +71,32 @@ def delete_maildrop_channel(id_transmitter: int, capcode: int, id_fbit: int, ses
     if not result:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка удаления канала")
     return channel_item
+
+
+@router.get("/rss_feeds/", response_model=list[MaildropRssFeedSchema])
+def get_rss_feeds(session: Session = Depends(get_session)):
+    """Вывод всех rss лент"""
+    rss_feeds_tuple = db_channels.get_rss_feeds(session)
+    return rss_feeds_tuple
+
+
+@router.post("/rss_feeds/", response_model=MaildropRssFeedSchema, status_code=status.HTTP_201_CREATED)
+def create_rss_feed(maildrop_rss_feed_schema_item: MaildropRssFeedSchema, session: Session = Depends(get_session)):
+    """Создание rss"""
+    feed_item = db_channels.create_rss_feed(session, maildrop_rss_feed_schema_item)
+    if not feed_item:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка создания ленты")
+    return feed_item
+
+
+@router.delete("/rss_feeds/", response_model=MaildropRssFeedSchema)
+def delete_rss_feed(id_feed: int, session: Session = Depends(get_session)):
+    """Удаление rss"""
+    feed_item = db_channels.get_rss_feed(session, id_feed)
+    if not feed_item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Лента не найдена")
+
+    result = db_channels.delete_rss_feed(session, id_feed)
+    if not result:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка удаления ленты")
+    return feed_item

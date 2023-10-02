@@ -152,6 +152,7 @@ class CharsetEncoder():
         message = message \
             .replace('«', '"') \
             .replace('»', '"') \
+            .replace(' ', ' ') \
             .replace('&amp;', '&') \
             .replace('&gt;', '>') \
             .replace('&lt;', '<') \

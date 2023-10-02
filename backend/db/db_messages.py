@@ -5,7 +5,6 @@ import uuid
 from sqlalchemy import and_, desc, or_, select
 from sqlalchemy.orm import Session
 
-from backend.models.model_channels import MaildropRssFeed
 from backend.models.model_messages import Message, MessageSchema
 
 
@@ -89,19 +88,5 @@ def get_last_sent_maildrop_by_type(session: Session, id_maildrop_type: int) -> M
             Message.id_maildrop_type == id_maildrop_type
         )
         .order_by(desc(Message.datetime_create))
-    )
-    return result.scalar()
-
-
-# TODO определить в каком файле размещать всё про RSS
-
-
-def get_rss_feed_by_maildrop_type(session: Session, id_maildrop_type: int) -> MaildropRssFeed:
-    """Возвращает RSS-ленту, связанную с этим id_maildrop_type """
-    result = session.execute(
-        select(MaildropRssFeed)
-        .where(
-            MaildropRssFeed.id_maildrop_type == id_maildrop_type
-        )
     )
     return result.scalar()

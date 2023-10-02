@@ -1,8 +1,9 @@
 """Модели каналов"""
 import datetime
+from typing import Optional
 
 from pydantic import BaseModel, Field
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Integer, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -86,7 +87,25 @@ class MaildropRssFeed(Base):
     __tablename__ = 'rss_feeds'
     __table_args__ = {"comment": "RSS-ленты"}
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     id_maildrop_type: Mapped[int] = mapped_column(Integer, ForeignKey('n_maildrop_types.id'), nullable=False, unique=True)
     feed_link: Mapped[str] = mapped_column(Text, nullable=False)
     datetime_create: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, default=datetime.datetime.now)
+
+
+class MaildropRssFeedSchema(BaseModel):
+    id: Optional[int] = Field(
+        title="id новостной ленты",
+    )
+    id_maildrop_type: MaildropTypeEnum = Field(
+        title="Тип новостного канала",
+    )
+    feed_link: str = Field(
+        title="Ссылка на rss-ленту",
+    )
+    datetime_create: Optional[datetime.datetime] = Field(
+        title="Дата и время добавления ленты",
+    )
+
+    class Config:
+        orm_mode = True
