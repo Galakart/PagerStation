@@ -1,8 +1,10 @@
+"""Все enum, применямые в моделях"""
 from enum import IntEnum, unique
 
 
 @unique
 class BaudrateEnum(IntEnum):
+    """Скорость передачи сообщения"""
     BAUD_512 = 1
     BAUD_1200 = 2
     BAUD_2400 = 3
@@ -10,6 +12,7 @@ class BaudrateEnum(IntEnum):
 
 @unique
 class FbitEnum(IntEnum):
+    """Номер источника"""
     BIT_0 = 0
     BIT_1 = 1
     BIT_2 = 2
@@ -18,6 +21,7 @@ class FbitEnum(IntEnum):
 
 @unique
 class CodepageEnum(IntEnum):
+    """Кодировка текста"""
     LAT = 1
     CYR = 2
     LINGUIST = 3
@@ -25,6 +29,7 @@ class CodepageEnum(IntEnum):
 
 @unique
 class MessageTypeEnum(IntEnum):
+    """Тип сообщения"""
     PRIVATE = 1
     GROUP = 2
     MAILDROP = 3
@@ -32,12 +37,14 @@ class MessageTypeEnum(IntEnum):
 
 @unique
 class GroupTypeEnum(IntEnum):
+    """Тип группового сообщения"""
     COMMON = 1
     ALERT = 2  # групповое сообщение с громким оповещением, независимо от настроек беззвучности пейджера
 
 
 @unique
 class MaildropTypeEnum(IntEnum):
+    """Тип новостного сообщения"""
     # Motorola Advisor может принимать 4 капкода по 4 источника.
     # Значит у нас могут быть максимум 16 ячеек (8, если мы используем ещё личный и групповой капкод)
     # под разные темы новостных сообщений.

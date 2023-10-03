@@ -10,21 +10,27 @@ from .base import Base
 from .enums import GroupTypeEnum, MaildropTypeEnum
 from .model_hardware import CodepageEnum, FbitEnum
 
-# pylint: disable=missing-class-docstring,too-few-public-methods
-
 
 class GroupChannel(Base):
+    """Групповые каналы трансмиттера"""
     __tablename__ = 'channels_group'
-    __table_args__ = {"comment": "Групповые каналы трансмиттера"}
 
-    id_transmitter: Mapped[int] = mapped_column(Integer, ForeignKey('transmitters.id'), primary_key=True)
+    id_transmitter: Mapped[int] = mapped_column(
+        Integer, ForeignKey('transmitters.id'),
+        primary_key=True
+    )
     capcode: Mapped[int] = mapped_column(Integer, primary_key=True)
     id_fbit: Mapped[int] = mapped_column(Integer, ForeignKey('n_fbits.id'), primary_key=True)
-    id_group_type: Mapped[int] = mapped_column(Integer, ForeignKey('n_group_types.id'), nullable=False)
+    id_group_type: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey('n_group_types.id'),
+        nullable=False
+    )
     id_codepage: Mapped[int] = mapped_column(Integer, ForeignKey('n_codepages.id'), nullable=False)
 
 
 class GroupChannelSchema(BaseModel):
+    """Схема - групповые каналы трансмиттера"""
     id_transmitter: int = Field(
         title="id передатчика",
     )
@@ -43,24 +49,31 @@ class GroupChannelSchema(BaseModel):
         title="Кодировка текста",
     )
 
-    class Config:
+    class Config:  # pylint: disable=missing-class-docstring
         orm_mode = True
-
-# TODO может объединить в одной таблице БД все типы каналов
 
 
 class MailDropChannel(Base):
+    """Новостные каналы трансмиттера"""
     __tablename__ = 'channels_maildrop'
-    __table_args__ = {"comment": "Новостные каналы трансмиттера"}
 
-    id_transmitter: Mapped[int] = mapped_column(Integer, ForeignKey('transmitters.id'), primary_key=True)
+    id_transmitter: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey('transmitters.id'),
+        primary_key=True
+    )
     capcode: Mapped[int] = mapped_column(Integer, primary_key=True)
     id_fbit: Mapped[int] = mapped_column(Integer, ForeignKey('n_fbits.id'), primary_key=True)
-    id_maildrop_type: Mapped[int] = mapped_column(Integer, ForeignKey('n_maildrop_types.id'), nullable=False)
+    id_maildrop_type: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey('n_maildrop_types.id'),
+        nullable=False
+    )
     id_codepage: Mapped[int] = mapped_column(Integer, ForeignKey('n_codepages.id'), nullable=False)
 
 
 class MailDropChannelSchema(BaseModel):
+    """Схема - новостные каналы трансмиттера"""
     id_transmitter: int = Field(
         title="id передатчика",
     )
@@ -79,21 +92,31 @@ class MailDropChannelSchema(BaseModel):
         title="Кодировка текста",
     )
 
-    class Config:
+    class Config:  # pylint: disable=missing-class-docstring
         orm_mode = True
 
 
 class MaildropRssFeed(Base):
+    """RSS-ленты, используемые в maildrop"""
     __tablename__ = 'rss_feeds'
-    __table_args__ = {"comment": "RSS-ленты"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    id_maildrop_type: Mapped[int] = mapped_column(Integer, ForeignKey('n_maildrop_types.id'), nullable=False, unique=True)
+    id_maildrop_type: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey('n_maildrop_types.id'),
+        nullable=False,
+        unique=True
+    )
     feed_link: Mapped[str] = mapped_column(Text, nullable=False)
-    datetime_create: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, default=datetime.datetime.now)
+    datetime_create: Mapped[datetime.datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.datetime.now
+    )
 
 
 class MaildropRssFeedSchema(BaseModel):
+    """Схема - RSS-ленты"""
     id: Optional[int] = Field(
         title="id новостной ленты",
     )
@@ -107,5 +130,5 @@ class MaildropRssFeedSchema(BaseModel):
         title="Дата и время добавления ленты",
     )
 
-    class Config:
+    class Config:  # pylint: disable=missing-class-docstring
         orm_mode = True

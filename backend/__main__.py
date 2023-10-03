@@ -1,4 +1,4 @@
-
+"""Backend main module"""
 import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
@@ -43,23 +43,27 @@ file_handler = TimedRotatingFileHandler(
     interval=1,
     backupCount=7,
 )
-file_handler.setFormatter(logging.Formatter('%(asctime)s  %(filename)s  %(funcName)s  %(lineno)d  %(name)s  %(levelname)s: %(message)s'))
+file_handler.setFormatter(logging.Formatter('%(asctime)s  %(filename)s  %(funcName)s  \
+                                            %(lineno)d  %(name)s  %(levelname)s: %(message)s'))
 LOGGER.addHandler(file_handler)
 logging.getLogger('apscheduler.executors.default').setLevel(logging.WARNING)
 
 
 @scheduler.scheduled_job('interval', id='do_job_send_messages', seconds=5, misfire_grace_time=900)
 def job_send_messages():
+    """Таймер для слежения за новыми сообщениями"""
     job_messages.send_messages()
 
 
 @scheduler.scheduled_job('interval', id='do_job_update_maildrop', seconds=60, misfire_grace_time=900)
 def job_update_maildrop_currency():
+    """Таймер для обновления новостного (maildrop) контента"""
     job_maildrop.update_maildrop()
 
 
 @scheduler.scheduled_job('cron', id='do_job_check_celebrations', hour=0, minute=0)
 def job_check_celebrations():
+    """Таймер проверки, наступило ли время праздников"""
     job_messages.check_celebrations()
 
 
