@@ -3,9 +3,6 @@ from sqlalchemy import Column, ForeignKey, Integer, Table, Uuid
 
 from .base import Base
 
-# pylint: disable=missing-class-docstring,too-few-public-methods
-
-
 user_pagers = Table(
     "user_pagers",
     Base.metadata,

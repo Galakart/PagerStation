@@ -1,4 +1,4 @@
-"""Операции с пейджинговыми сообщениями"""
+"""БД - пейджинговые сообщения"""
 import datetime
 import uuid
 
@@ -9,6 +9,7 @@ from backend.models.model_messages import Message, MessageSchema
 
 
 def get_messages(session: Session, offset=None, limit=None):
+    """Все сообщения"""
     result = session.execute(
         select(Message)
         .offset(offset)
@@ -19,17 +20,21 @@ def get_messages(session: Session, offset=None, limit=None):
 
 
 def get_message(session: Session, uid_message: uuid.UUID) -> Message:
+    """Сообщение по uid"""
     message = session.get(Message, uid_message)
     return message
 
 
 def create_message(session: Session, message_schema_item: MessageSchema) -> Message:
+    """Создать сообщение"""
     message = Message(
         uid=uuid.uuid4(),
         id_message_type=message_schema_item.id_message_type.value,
         id_pager=message_schema_item.id_pager,
-        id_group_type=message_schema_item.id_group_type.value if message_schema_item.id_group_type else None,
-        id_maildrop_type=message_schema_item.id_maildrop_type.value if message_schema_item.id_maildrop_type else None,
+        id_group_type=message_schema_item.id_group_type.value if
+        message_schema_item.id_group_type else None,
+        id_maildrop_type=message_schema_item.id_maildrop_type.value if
+        message_schema_item.id_maildrop_type else None,
         message=message_schema_item.message,
         datetime_send_after=message_schema_item.datetime_send_after,
     )
@@ -40,6 +45,7 @@ def create_message(session: Session, message_schema_item: MessageSchema) -> Mess
 
 
 def delete_message(session: Session, uid_message: uuid.UUID) -> bool:
+    """Удалить сообщение"""
     result = False
     message = session.get(Message, uid_message)
     # TODO выдавать ошибку если сообщение уже отправлено
@@ -51,14 +57,15 @@ def delete_message(session: Session, uid_message: uuid.UUID) -> bool:
 
 
 def get_unsent_messages(session: Session):
+    """Все неотправленные сообщения (с лимитом)"""
     today_datetime = datetime.datetime.now()
     result = session.execute(
         select(Message)
         .where(
             and_(
-                Message.sent == False,
+                Message.sent == False,  # pylint: disable=singleton-comparison
                 or_(
-                    Message.datetime_send_after == None,
+                    Message.datetime_send_after == None,  # pylint: disable=singleton-comparison
                     Message.datetime_send_after <= today_datetime,
                 ),
             )
@@ -70,6 +77,7 @@ def get_unsent_messages(session: Session):
 
 
 def mark_message_sent(session: Session, uid_message: uuid.UUID) -> bool:
+    """Отметить сообщение как отправленное"""
     result = False
     message = session.get(Message, uid_message)
     if message:

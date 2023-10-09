@@ -9,36 +9,34 @@ from .base import Base
 from .enums import BaudrateEnum, CodepageEnum, FbitEnum
 from .model_secondaries import user_pagers
 
-# pylint: disable=missing-class-docstring,too-few-public-methods
-
 
 class Baudrate(Base):
+    """Классификатор - скорости передачи данных"""
     __tablename__ = 'n_baudrates'
-    __table_args__ = {"comment": "Скорости передачи данных"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
     name: Mapped[str] = mapped_column(String(4), unique=True, nullable=False)
 
 
 class Fbit(Base):
+    """Классификатор - источники (функциональные биты)"""
     __tablename__ = 'n_fbits'
-    __table_args__ = {"comment": "Источники (функциональные биты)"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
     name: Mapped[str] = mapped_column(String(1), unique=True, nullable=False)
 
 
 class Codepage(Base):
+    """Классификатор - кодировки текста"""
     __tablename__ = 'n_codepages'
-    __table_args__ = {"comment": "Кодировки текста"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
     name: Mapped[str] = mapped_column(String(8), unique=True, nullable=False)
 
 
 class Transmitter(Base):
+    """Передатчики"""
     __tablename__ = 'transmitters'
-    __table_args__ = {"comment": "Передатчики"}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
@@ -47,6 +45,7 @@ class Transmitter(Base):
 
 
 class TransmitterSchema(BaseModel):
+    """Схема - передатчики"""
     id: Optional[int]
     name: str = Field(
         title="Название передатчика",
@@ -63,29 +62,38 @@ class TransmitterSchema(BaseModel):
         title="Скорость передачи",
     )
 
-    class Config:
+    class Config:  # pylint: disable=missing-class-docstring
         orm_mode = True
 
 
 class Pager(Base):
+    """Пейджеры"""
     __tablename__ = 'pagers'
-    __table_args__ = {"comment": "Пейджеры"}
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)  # абонентский номер
+    id: Mapped[int] = mapped_column(  # абонентский номер
+        Integer,
+        primary_key=True,
+        autoincrement=False
+    )
     capcode: Mapped[int] = mapped_column(Integer, nullable=False)
     id_fbit: Mapped[int] = mapped_column(Integer, ForeignKey('n_fbits.id'), nullable=False)
     id_codepage: Mapped[int] = mapped_column(Integer, ForeignKey('n_codepages.id'), nullable=False)
-    id_transmitter: Mapped[int] = mapped_column(Integer, ForeignKey('transmitters.id'), nullable=False)
+    id_transmitter: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey('transmitters.id'),
+        nullable=False
+    )
     users: Mapped[list] = relationship('User', secondary=user_pagers, back_populates='pagers')
 
 
 class PagerSchema(BaseModel):
+    """Схема - пейджеры"""
     id: int = Field(
         title="Абонентский номер",
     )
     capcode: int = Field(
         title="Приватный капкод",
-        ge=10,  # из-за особенностей POCSAG-протокола, не рекомендуется использовать капкоды меньше 10
+        ge=10,  # из-за особенностей POCSAG-протокола, не рекомендуются капкоды меньше 10
         le=9999999,
     )
     id_fbit: FbitEnum = Field(
@@ -101,5 +109,5 @@ class PagerSchema(BaseModel):
         title="Пользователи пейджера"
     )
 
-    class Config:
+    class Config:  # pylint: disable=missing-class-docstring
         orm_mode = True

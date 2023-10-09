@@ -10,12 +10,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base
 from .model_secondaries import user_pagers
 
-# pylint: disable=missing-class-docstring,too-few-public-methods
-
 
 class User(Base):
+    """Пользователи"""
     __tablename__ = 'users'
-    __table_args__ = {"comment": "Пользователи пейджеров"}
 
     uid: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
     fio: Mapped[str] = mapped_column(String(200), nullable=False)
@@ -24,6 +22,7 @@ class User(Base):
 
 
 class UserSchema(BaseModel):
+    """Схема - пользователи"""
     uid: Optional[uuid.UUID]
     fio: str = Field(
         title="ФИО пользователя",
@@ -39,5 +38,5 @@ class UserSchema(BaseModel):
         title="Пейджеры пользователя"
     )
 
-    class Config:
+    class Config: # pylint: disable=missing-class-docstring
         orm_mode = True

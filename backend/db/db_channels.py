@@ -1,3 +1,4 @@
+"""БД, каналы групповые и новостные"""
 import logging
 
 from sqlalchemy import select
@@ -13,6 +14,7 @@ LOGGER = logging.getLogger()
 
 
 def get_group_channels(session: Session):
+    """Все групповые каналы"""
     result = session.execute(
         select(GroupChannel)
     )
@@ -20,12 +22,22 @@ def get_group_channels(session: Session):
     return channels
 
 
-def get_group_channel(session: Session, id_transmitter: int, capcode: int, id_fbit: int) -> GroupChannel:
+def get_group_channel(
+        session: Session,
+        id_transmitter: int,
+        capcode: int,
+        id_fbit: int
+) -> GroupChannel:
+    """Групповой канал по id"""
     channel = session.get(GroupChannel, (id_transmitter, capcode, id_fbit))
     return channel
 
 
-def create_group_channel(session: Session, group_channel_schema_item: GroupChannelSchema) -> GroupChannel:
+def create_group_channel(
+        session: Session,
+        group_channel_schema_item: GroupChannelSchema
+) -> GroupChannel:
+    """Создать групповой канал"""
     channel = GroupChannel(
         id_transmitter=group_channel_schema_item.id_transmitter,
         capcode=group_channel_schema_item.capcode,
@@ -40,6 +52,7 @@ def create_group_channel(session: Session, group_channel_schema_item: GroupChann
 
 
 def delete_group_channel(session: Session, id_transmitter: int, capcode: int, id_fbit: int) -> bool:
+    """Удалить групповой канал"""
     result = False
     channel = session.get(GroupChannel, (id_transmitter, capcode, id_fbit))
     if channel:
@@ -50,6 +63,7 @@ def delete_group_channel(session: Session, id_transmitter: int, capcode: int, id
 
 
 def get_maildrop_channels(session: Session):
+    """Все новостные каналы"""
     result = session.execute(
         select(MailDropChannel)
     )
@@ -57,12 +71,22 @@ def get_maildrop_channels(session: Session):
     return channels
 
 
-def get_maildrop_channel(session: Session, id_transmitter: int, capcode: int, id_fbit: int) -> MailDropChannel:
+def get_maildrop_channel(
+        session: Session,
+        id_transmitter: int,
+        capcode: int,
+        id_fbit: int
+) -> MailDropChannel:
+    """Новостной канал по id"""
     channel = session.get(MailDropChannel, (id_transmitter, capcode, id_fbit))
     return channel
 
 
-def create_maildrop_channel(session: Session, maildrop_channel_schema_item: MailDropChannelSchema) -> MailDropChannel:
+def create_maildrop_channel(
+        session: Session,
+        maildrop_channel_schema_item: MailDropChannelSchema
+) -> MailDropChannel:
+    """Создать новостной канал"""
     channel = MailDropChannel(
         id_transmitter=maildrop_channel_schema_item.id_transmitter,
         capcode=maildrop_channel_schema_item.capcode,
@@ -76,7 +100,13 @@ def create_maildrop_channel(session: Session, maildrop_channel_schema_item: Mail
     return channel
 
 
-def delete_maildrop_channel(session: Session, id_transmitter: int, capcode: int, id_fbit: int) -> bool:
+def delete_maildrop_channel(
+        session: Session,
+        id_transmitter: int,
+        capcode: int,
+        id_fbit: int
+) -> bool:
+    """Удалить новостной канал"""
     result = False
     channel = session.get(MailDropChannel, (id_transmitter, capcode, id_fbit))
     if channel:
@@ -87,6 +117,7 @@ def delete_maildrop_channel(session: Session, id_transmitter: int, capcode: int,
 
 
 def get_group_channels_by_type(session: Session, id_group_type: int):
+    """Групповые каналы по конкретному типу"""
     result = session.execute(
         select(GroupChannel)
         .where(
@@ -98,6 +129,7 @@ def get_group_channels_by_type(session: Session, id_group_type: int):
 
 
 def get_maildrop_channels_by_type(session: Session, id_maildrop_type: int):
+    """Новостные каналы по конкретному типу"""
     result = session.execute(
         select(MailDropChannel)
         .where(
@@ -109,6 +141,7 @@ def get_maildrop_channels_by_type(session: Session, id_maildrop_type: int):
 
 
 def get_rss_feeds(session: Session):
+    """Все RSS-ленты"""
     result = session.execute(
         select(MaildropRssFeed)
     )
@@ -117,11 +150,16 @@ def get_rss_feeds(session: Session):
 
 
 def get_rss_feed(session: Session, id_feed: int) -> MaildropRssFeed:
+    """RSS-лента по id"""
     feed = session.get(MaildropRssFeed, id_feed)
     return feed
 
 
-def create_rss_feed(session: Session, maildrop_rss_feed_schema_item: MaildropRssFeedSchema) -> MailDropChannel:
+def create_rss_feed(
+        session: Session,
+        maildrop_rss_feed_schema_item: MaildropRssFeedSchema
+) -> MailDropChannel:
+    """Создать RSS-ленту"""
     feed = MaildropRssFeed(
         id_maildrop_type=maildrop_rss_feed_schema_item.id_maildrop_type.value,
         feed_link=maildrop_rss_feed_schema_item.feed_link,
@@ -133,6 +171,7 @@ def create_rss_feed(session: Session, maildrop_rss_feed_schema_item: MaildropRss
 
 
 def delete_rss_feed(session: Session, id_feed: int) -> bool:
+    """Удалить RSS-ленту"""
     result = False
     feed = session.get(MaildropRssFeed, id_feed)
     if feed:

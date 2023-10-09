@@ -121,6 +121,7 @@ SYMBOLS_LINGUIST = {
 
 
 class RuExtendedLanguagePack(TranslitLanguagePack):
+    """Кастомный словарь перевода транслита"""
     language_code = "ru_ext"
     language_name = "RU Extended"
 
@@ -144,11 +145,13 @@ class RuExtendedLanguagePack(TranslitLanguagePack):
 
 
 class CharsetEncoder():
+    """Класс перекодировщик текста для POCSAG"""
     def __init__(self):
         autodiscover()
         registry.register(RuExtendedLanguagePack)
 
     def encode_message(self, message, id_codepage):
+        """Кодирование текста сообщения в кодировки POCSAG"""
         message = message \
             .replace('«', '"') \
             .replace('»', '"') \
@@ -159,17 +162,21 @@ class CharsetEncoder():
             .replace('&quot;', '"')
 
         # в эфир передаются только латинские буквы и спецсимволы (то есть по сути, весь набор lat),
-        # так что так или иначе, независимо от заданной кодировки, нам нужно преобразовать её в набор lat
+        # так что так или иначе, независимо от заданной кодировки, нам нужно
+        # преобразовать её в набор lat
         result = ''
         if id_codepage == CodepageEnum.LAT.value:
-            # набор уже lat, ничего преобразовывать не нужно, только если встречаются русские символы,
-            # то транслитерируем их в латиницу. В конце проверим, не затесались ли символы, которых нету в наборе
+            # набор уже lat, ничего преобразовывать не нужно,
+            # только если встречаются русские символы, то транслитерируем их в латиницу.
+            # В конце проверим, не затесались ли символы,
+            # которых нету в наборе
             lat_text = translit(message, 'ru_ext', reversed=True)
             result = self.check_allowed_symbols(lat_text)
 
         elif id_codepage == CodepageEnum.CYR.value:
-            # переведём все английские слова в русский транслит (так как из-за сопоставления таблиц перекодировок идёт
-            # смена регистра, чтобы потом не наблюдать на пейджере что-то вроде тЕЦХНОЛОГЫ),
+            # переведём все английские слова в русский транслит (так как из-за сопоставления
+            #  таблиц перекодировок идёт смена регистра,
+            # чтобы потом не наблюдать на пейджере что-то вроде тЕЦХНОЛОГЫ),
             # затем перекодируем в lat по словарю SYMBOLS_CYR
             ru_text = translit(message, 'ru_ext')
             for cyr_symbol, lat_symbol in SYMBOLS_CYR.items():
@@ -177,8 +184,9 @@ class CharsetEncoder():
             result = self.check_allowed_symbols(ru_text)
 
         elif id_codepage == CodepageEnum.LINGUIST.value:
-            # Транслитерация не нужна, но в этом наборе только заглавные буквы, так что сделаем их такими,
-            # и потом уже кодируем встречающиеся русские заглавные символы по словарю SYMBOLS_LINGUIST.
+            # Транслитерация не нужна, но в этом наборе только заглавные буквы,
+            # так что сделаем их такими, и потом уже кодируем встречающиеся русские
+            # заглавные символы по словарю SYMBOLS_LINGUIST.
             # Встречающиеся латинские заглавные кодировать не нужно, они совпадают с набором lat
             linguist_text = message.upper()
             for cyr_symbol, lat_symbol in SYMBOLS_LINGUIST.items():
@@ -188,6 +196,7 @@ class CharsetEncoder():
         return result
 
     def check_allowed_symbols(self, mes_text: str) -> str:
+        """Проверка чтобы в тексте были только символы из кодовой таблицы, удаление остальных"""
         mes_lst = list(mes_text)
         for mes_symbol in mes_lst:
             if mes_symbol not in ALLOWED_SYMBOLS:

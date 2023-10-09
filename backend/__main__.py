@@ -49,13 +49,13 @@ LOGGER.addHandler(file_handler)
 logging.getLogger('apscheduler.executors.default').setLevel(logging.WARNING)
 
 
-@scheduler.scheduled_job('interval', id='do_job_send_messages', seconds=5, misfire_grace_time=900)
+@scheduler.scheduled_job('interval', id='do_job_send_messages', seconds=5)
 def job_send_messages():
     """Таймер для слежения за новыми сообщениями"""
     job_messages.send_messages()
 
 
-@scheduler.scheduled_job('interval', id='do_job_update_maildrop', seconds=60, misfire_grace_time=900)
+@scheduler.scheduled_job('interval', id='do_job_update_maildrop', seconds=60)
 def job_update_maildrop_currency():
     """Таймер для обновления новостного (maildrop) контента"""
     job_maildrop.update_maildrop()

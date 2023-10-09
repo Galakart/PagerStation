@@ -1,3 +1,4 @@
+"""БД - оборудование"""
 import logging
 
 from sqlalchemy import select
@@ -10,6 +11,7 @@ LOGGER = logging.getLogger('applog')
 
 
 def get_transmitters(session: Session, offset=None, limit=None):
+    """Все передатчики"""
     result = session.execute(
         select(Transmitter)
         .offset(offset)
@@ -20,11 +22,13 @@ def get_transmitters(session: Session, offset=None, limit=None):
 
 
 def get_transmitter(session: Session, id_transmitter: int) -> Transmitter:
+    """Передатчик по id"""
     transmitter = session.get(Transmitter, id_transmitter)
     return transmitter
 
 
 def create_transmitter(session: Session, transmitter_schema_item: TransmitterSchema) -> Transmitter:
+    """Создать передатчик"""
     transmitter = Transmitter(
         name=transmitter_schema_item.name,
         freq=transmitter_schema_item.freq,
@@ -36,7 +40,12 @@ def create_transmitter(session: Session, transmitter_schema_item: TransmitterSch
     return transmitter
 
 
-def update_transmitter(session: Session, id_transmitter: int, transmitter_schema_item: TransmitterSchema) -> Transmitter:
+def update_transmitter(
+        session: Session,
+        id_transmitter: int,
+        transmitter_schema_item: TransmitterSchema
+) -> Transmitter:
+    """Изменить передатчик"""
     transmitter = session.get(Transmitter, id_transmitter)
     if transmitter:
         transmitter.name = transmitter_schema_item.name
@@ -50,6 +59,7 @@ def update_transmitter(session: Session, id_transmitter: int, transmitter_schema
 
 
 def delete_transmitter(session: Session, id_transmitter: int) -> bool:
+    """Удалить передатчик"""
     result = False
     transmitter = session.get(Transmitter, id_transmitter)
     if transmitter:
@@ -60,6 +70,7 @@ def delete_transmitter(session: Session, id_transmitter: int) -> bool:
 
 
 def get_pagers(session: Session, offset=None, limit=None):
+    """Все пейджеры"""
     result = session.execute(
         select(Pager)
         .offset(offset)
@@ -70,11 +81,13 @@ def get_pagers(session: Session, offset=None, limit=None):
 
 
 def get_pager(session: Session, id_pager: int) -> Pager:
+    """Пейджер по его абонентскому номеру"""
     pager = session.get(Pager, id_pager)
     return pager
 
 
 def create_pager(session: Session, pager_schema_item: PagerSchema) -> Pager:
+    """Создать пейджер"""
     pager = Pager(
         id=pager_schema_item.id,
         capcode=pager_schema_item.capcode,
@@ -89,6 +102,7 @@ def create_pager(session: Session, pager_schema_item: PagerSchema) -> Pager:
 
 
 def update_pager(session: Session, id_pager: int, pager_schema_item: PagerSchema) -> Pager:
+    """Изменить пейджер"""
     pager = session.get(Pager, id_pager)
     if pager:
         pager.capcode = pager_schema_item.capcode
@@ -103,6 +117,7 @@ def update_pager(session: Session, id_pager: int, pager_schema_item: PagerSchema
 
 
 def delete_pager(session: Session, id_pager: int) -> bool:
+    """Удалить пейджер"""
     result = False
     pager = session.get(Pager, id_pager)
     if pager:

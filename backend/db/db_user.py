@@ -1,3 +1,4 @@
+"""БД - пользователи"""
 import datetime
 import logging
 import uuid
@@ -12,6 +13,7 @@ LOGGER = logging.getLogger()
 
 
 def get_users(session: Session, offset=None, limit=None):
+    """Все пользователи"""
     result = session.execute(
         select(User)
         .offset(offset)
@@ -22,11 +24,13 @@ def get_users(session: Session, offset=None, limit=None):
 
 
 def get_user(session: Session, uid_user: uuid.UUID) -> User:
+    """Пользователь по uid"""
     user = session.get(User, uid_user)
     return user
 
 
 def create_user(session: Session, user_schema_item: UserSchema) -> User:
+    """Создать пользователя"""
     user = User(
         uid=uuid.uuid4(),
         fio=user_schema_item.fio,
@@ -39,10 +43,11 @@ def create_user(session: Session, user_schema_item: UserSchema) -> User:
 
 
 def update_user(session: Session, uid_user: uuid.UUID, user_schema_item: UserSchema) -> User:
+    """Изменить пользователя"""
     user = session.get(User, uid_user)
     if user:
         user.fio = user_schema_item.fio
-        user.datar = user_schema_item.datar
+        user.datar = user_schema_item.datar # type: ignore
 
         session.add(user)
         session.commit()
@@ -51,6 +56,7 @@ def update_user(session: Session, uid_user: uuid.UUID, user_schema_item: UserSch
 
 
 def delete_user(session: Session, uid_user: uuid.UUID) -> bool:
+    """Удалить пользователя"""
     result = False
     user = session.get(User, uid_user)
     if user:
@@ -61,6 +67,7 @@ def delete_user(session: Session, uid_user: uuid.UUID) -> bool:
 
 
 def register_user_pager(session: Session, uid_user: uuid.UUID, id_pager: int) -> User:
+    """Привязать пейджер к пользователю"""
     user = session.get(User, uid_user)
     pager = session.get(Pager, id_pager)
     if user:
@@ -72,6 +79,7 @@ def register_user_pager(session: Session, uid_user: uuid.UUID, id_pager: int) ->
 
 
 def unregister_user_pager(session: Session, uid_user: uuid.UUID, id_pager: int) -> User:
+    """Отвязать пейджер от пользователя"""
     user = session.get(User, uid_user)
     pager = session.get(Pager, id_pager)
     if user:
@@ -82,6 +90,7 @@ def unregister_user_pager(session: Session, uid_user: uuid.UUID, id_pager: int) 
 
 
 def get_users_with_birthday(session: Session, offset=None, limit=None):
+    """Пользователи у которых сегодня днюха"""
     today_date = datetime.date.today()
     result = session.execute(
         select(User)
@@ -89,7 +98,7 @@ def get_users_with_birthday(session: Session, offset=None, limit=None):
             and_(
                 extract('month', User.datar) == today_date.month,
                 extract('day', User.datar) == today_date.day,
-                User.pagers != None,
+                User.pagers != None, # pylint: disable=singleton-comparison
             )
         )
         .offset(offset)

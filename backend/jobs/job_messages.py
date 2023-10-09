@@ -1,3 +1,4 @@
+"""Периодические действия - сообщения"""
 import datetime
 import logging
 import random
@@ -30,16 +31,22 @@ def send_messages():
                 if result:
                     db_messages.mark_message_sent(session, message_item.uid)
                 else:
-                    LOGGER.error(f'Ошибка отправки личного сообщения id:{message_item.uid}')
+                    LOGGER.error('Ошибка отправки личного сообщения id: %s', message_item.uid)
 
             elif message_item.id_message_type == MessageTypeEnum.GROUP.value:
-                group_channels_tuple = db_channels.get_group_channels_by_type(session, message_item.id_group_type)
+                group_channels_tuple = db_channels.get_group_channels_by_type(
+                    session,
+                    message_item.id_group_type
+                )
                 if not group_channels_tuple:
                     continue
 
                 result = False
                 for group_channel in group_channels_tuple:
-                    transmitter_item = db_hardware.get_transmitter(session, group_channel.id_transmitter)
+                    transmitter_item = db_hardware.get_transmitter(
+                        session,
+                        group_channel.id_transmitter
+                    )
                     result = pocsag_sender.message_to_air(
                         capcode=group_channel.capcode,
                         fbit=group_channel.id_fbit,
@@ -51,16 +58,22 @@ def send_messages():
                 if result:
                     db_messages.mark_message_sent(session, message_item.uid)
                 else:
-                    LOGGER.error(f'Ошибка отправки группового сообщения id:{message_item.uid}')
+                    LOGGER.error('Ошибка отправки группового сообщения id: %s', message_item.uid)
 
             elif message_item.id_message_type == MessageTypeEnum.MAILDROP.value:
-                maildrop_channels_tuple = db_channels.get_maildrop_channels_by_type(session, message_item.id_maildrop_type)
+                maildrop_channels_tuple = db_channels.get_maildrop_channels_by_type(
+                    session,
+                    message_item.id_maildrop_type
+                )
                 if not maildrop_channels_tuple:
                     continue
 
                 result = False
                 for maildrop_channel in maildrop_channels_tuple:
-                    transmitter_item = db_hardware.get_transmitter(session, maildrop_channel.id_transmitter)
+                    transmitter_item = db_hardware.get_transmitter(
+                        session,
+                        maildrop_channel.id_transmitter
+                    )
                     result = pocsag_sender.message_to_air(
                         capcode=maildrop_channel.capcode,
                         fbit=maildrop_channel.id_fbit,
@@ -72,7 +85,7 @@ def send_messages():
                 if result:
                     db_messages.mark_message_sent(session, message_item.uid)
                 else:
-                    LOGGER.error(f'Ошибка отправки новостного сообщения id:{message_item.uid}')
+                    LOGGER.error('Ошибка отправки новостного сообщения id: %s', message_item.uid)
 
 
 def check_celebrations():
@@ -93,7 +106,7 @@ def check_celebrations():
             message_schema_item = MessageSchema(
                 uid=None,
                 id_message_type=MessageTypeEnum.PRIVATE,
-                id_pager=user_item.pagers[0].id,  # отправим поздравление только на один пейджер пользователя
+                id_pager=user_item.pagers[0].id,  # только на один пейджер пользователя
                 id_group_type=None,
                 id_maildrop_type=None,
                 message='Поздравляем с днём рождения!!!',  # TODO разные фразы

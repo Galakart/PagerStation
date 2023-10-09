@@ -1,3 +1,4 @@
+"""Роутер - пейджинговые сообщения"""
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -15,7 +16,11 @@ router = APIRouter(
 
 
 @router.get("/", response_model=list[MessageSchema])
-def get_messages(offset: int = 0, limit: int = const.LIMIT_GET, session: Session = Depends(get_session)):
+def get_messages(
+    offset: int = 0,
+    limit: int = const.LIMIT_GET,
+    session: Session = Depends(get_session)
+):
     """Вывод всех сообщений"""
     messages_tuple = db_messages.get_messages(session, offset, limit)
     return messages_tuple
@@ -36,7 +41,10 @@ def create_message(message_schema_item: MessageSchema, session: Session = Depend
     # TODO скрывать лишние поля, типа как response_model_exclude={"sent", "date_create"}
     message_item = db_messages.create_message(session, message_schema_item)
     if not message_item:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка создания сообщения")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка создания сообщения"
+        )
     return message_item
 
 
@@ -49,5 +57,8 @@ def delete_message(uid_message: uuid.UUID, session: Session = Depends(get_sessio
 
     result = db_messages.delete_message(session, uid_message)
     if not result:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка удаления сообщения")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка удаления сообщения"
+        )
     return message_item

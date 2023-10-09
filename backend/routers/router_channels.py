@@ -1,3 +1,4 @@
+"""Роутер - каналы групповые и новостные"""
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -23,16 +24,27 @@ def get_group_channels(session: Session = Depends(get_session)):
 
 
 @router.post("/group/", response_model=GroupChannelSchema, status_code=status.HTTP_201_CREATED)
-def create_group_channel(group_channel_schema_item: GroupChannelSchema, session: Session = Depends(get_session)):
+def create_group_channel(
+    group_channel_schema_item: GroupChannelSchema,
+    session: Session = Depends(get_session)
+):
     """Создание группового канала"""
     channel_item = db_channels.create_group_channel(session, group_channel_schema_item)
     if not channel_item:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка создания группового канала")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка создания группового канала"
+        )
     return channel_item
 
 
 @router.delete("/group/", response_model=GroupChannelSchema)
-def delete_group_channel(id_transmitter: int, capcode: int, id_fbit: int, session: Session = Depends(get_session)):
+def delete_group_channel(
+    id_transmitter: int,
+    capcode: int,
+    id_fbit: int,
+    session: Session = Depends(get_session)
+):
     """Удаление группового канала"""
     channel_item = db_channels.get_group_channel(session, id_transmitter, capcode, id_fbit)
     if not channel_item:
@@ -40,7 +52,10 @@ def delete_group_channel(id_transmitter: int, capcode: int, id_fbit: int, sessio
 
     result = db_channels.delete_group_channel(session, id_transmitter, capcode, id_fbit)
     if not result:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка удаления канала")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка удаления канала"
+        )
     return channel_item
 
 
@@ -51,17 +66,29 @@ def get_maildrop_channels(session: Session = Depends(get_session)):
     return maildrop_channels_tuple
 
 
-@router.post("/maildrop/", response_model=MailDropChannelSchema, status_code=status.HTTP_201_CREATED)
-def create_maildrop_channel(maildrop_channel_schema_item: MailDropChannelSchema, session: Session = Depends(get_session)):
+@router.post("/maildrop/", response_model=MailDropChannelSchema,
+             status_code=status.HTTP_201_CREATED)
+def create_maildrop_channel(
+    maildrop_channel_schema_item: MailDropChannelSchema,
+    session: Session = Depends(get_session)
+):
     """Создание группового канала"""
     channel_item = db_channels.create_maildrop_channel(session, maildrop_channel_schema_item)
     if not channel_item:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка создания новостного канала")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка создания новостного канала"
+        )
     return channel_item
 
 
 @router.delete("/maildrop/", response_model=MailDropChannelSchema)
-def delete_maildrop_channel(id_transmitter: int, capcode: int, id_fbit: int, session: Session = Depends(get_session)):
+def delete_maildrop_channel(
+    id_transmitter: int,
+    capcode: int,
+    id_fbit: int,
+    session: Session = Depends(get_session)
+):
     """Удаление новостного канала"""
     channel_item = db_channels.get_maildrop_channel(session, id_transmitter, capcode, id_fbit)
     if not channel_item:
@@ -69,7 +96,10 @@ def delete_maildrop_channel(id_transmitter: int, capcode: int, id_fbit: int, ses
 
     result = db_channels.delete_maildrop_channel(session, id_transmitter, capcode, id_fbit)
     if not result:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка удаления канала")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка удаления канала"
+        )
     return channel_item
 
 
@@ -80,12 +110,19 @@ def get_rss_feeds(session: Session = Depends(get_session)):
     return rss_feeds_tuple
 
 
-@router.post("/rss_feeds/", response_model=MaildropRssFeedSchema, status_code=status.HTTP_201_CREATED)
-def create_rss_feed(maildrop_rss_feed_schema_item: MaildropRssFeedSchema, session: Session = Depends(get_session)):
+@router.post("/rss_feeds/", response_model=MaildropRssFeedSchema,
+             status_code=status.HTTP_201_CREATED)
+def create_rss_feed(
+    maildrop_rss_feed_schema_item: MaildropRssFeedSchema,
+    session: Session = Depends(get_session)
+):
     """Создание rss"""
     feed_item = db_channels.create_rss_feed(session, maildrop_rss_feed_schema_item)
     if not feed_item:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка создания ленты")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка создания ленты"
+        )
     return feed_item
 
 
@@ -98,5 +135,8 @@ def delete_rss_feed(id_feed: int, session: Session = Depends(get_session)):
 
     result = db_channels.delete_rss_feed(session, id_feed)
     if not result:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка удаления ленты")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка удаления ленты"
+        )
     return feed_item
