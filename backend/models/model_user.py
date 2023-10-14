@@ -38,5 +38,5 @@ class UserSchema(BaseModel):
         title="Пейджеры пользователя"
     )
 
-    class Config: # pylint: disable=missing-class-docstring
-        orm_mode = True
+    class Config:  # pylint: disable=missing-class-docstring
+        from_attributes = True

@@ -111,4 +111,4 @@ class MessageSchema(BaseModel):
     )
 
     class Config:  # pylint: disable=missing-class-docstring
-        orm_mode = True
+        from_attributes = True

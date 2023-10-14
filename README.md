@@ -5,6 +5,14 @@
 
 ⛏️ ⚠️ 📦 💻
 
+
+sudo apt update
+sudo apt install git
+git clone git@github.com:Galakart/PagerStation.git pagerstation
+cd pagerstation
+
+
+
 ## Содержание
 - [Что это такое](#что-это-такое)  
 - [Список возможностей](#список-возможностей)  
