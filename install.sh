@@ -2,7 +2,7 @@
 
 # Update
 sudo apt update
-yes | sudo apt dist-upgrade
+sudo apt dist-upgrade -y
 sudo apt install -y git python3-venv nginx sqlite3 mc
 
 # Rpitx
