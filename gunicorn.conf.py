@@ -1,7 +1,7 @@
 from multiprocessing import cpu_count
 
 # Socket Path
-bind = 'unix:./pagerstation.sock'
+bind = 'unix:/var/run/pagerstation.sock'
 
 # Worker Options
 workers = cpu_count() + 1

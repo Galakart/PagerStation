@@ -82,8 +82,8 @@ def update_forecast():
                 lat=float(appconf.owm_latitude),
                 lon=float(appconf.owm_longitude)
             )
-            assert isinstance(one_call.forecast_hourly, dict)
-            assert isinstance(one_call.forecast_daily, dict)
+            assert isinstance(one_call.forecast_hourly, list)
+            assert isinstance(one_call.forecast_daily, list)
         except Exception as ex:
             LOGGER.error('Ошибка получения данных о погоде\n %s', ex, exc_info=True)
             return

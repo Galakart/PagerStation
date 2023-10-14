@@ -39,7 +39,7 @@ server {
 
     location / {
       include proxy_params;
-      proxy_pass http://unix:$(pwd)/pagerstation.sock;
+      proxy_pass http://unix:/var/run/pagerstation.sock;
     }
 }
 
