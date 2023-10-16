@@ -63,7 +63,7 @@ class TransmitterSchema(BaseModel):
     )
 
     class Config:  # pylint: disable=missing-class-docstring
-        from_attributes = True
+        orm_mode = True
 
 
 class Pager(Base):
@@ -110,4 +110,4 @@ class PagerSchema(BaseModel):
     )
 
     class Config:  # pylint: disable=missing-class-docstring
-        from_attributes = True
+        orm_mode = True

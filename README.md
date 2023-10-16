@@ -8,7 +8,7 @@
 
 sudo apt update
 sudo apt install git
-git clone git@github.com:Galakart/PagerStation.git pagerstation
+git clone https://github.com/Galakart/PagerStation.git pagerstation
 cd pagerstation
 
 

@@ -3,9 +3,9 @@ APScheduler==3.10.4
 fastapi==0.103.2
 feedparser==6.0.10
 gunicorn==21.2.0
-pydantic==2.4.2
-pydantic-settings==2.0.3
+pydantic==1.10.13
 pyowm==3.3.0
+python-dotenv==1.0.0
 requests==2.31.0
 SQLAlchemy==2.0.21
 sqlalchemy-repr==0.1.0

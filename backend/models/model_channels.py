@@ -50,7 +50,7 @@ class GroupChannelSchema(BaseModel):
     )
 
     class Config:  # pylint: disable=missing-class-docstring
-        from_attributes = True
+        orm_mode = True
 
 
 class MailDropChannel(Base):
@@ -93,7 +93,7 @@ class MailDropChannelSchema(BaseModel):
     )
 
     class Config:  # pylint: disable=missing-class-docstring
-        from_attributes = True
+        from_attrorm_modeibutes = True
 
 
 class MaildropRssFeed(Base):
@@ -131,4 +131,4 @@ class MaildropRssFeedSchema(BaseModel):
     )
 
     class Config:  # pylint: disable=missing-class-docstring
-        from_attributes = True
+        orm_mode = True

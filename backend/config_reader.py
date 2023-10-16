@@ -1,6 +1,5 @@
 """Класс с конфигурациями из переменных окружения"""
-from pydantic import SecretStr
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import BaseSettings, SecretStr
 
 
 class Settings(BaseSettings):
@@ -9,7 +8,10 @@ class Settings(BaseSettings):
     owm_latitude: str
     owm_longitude: str
 
-    model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
+    class Config:
+        """Переменные окружения загружаются из файла .env в корне проекта"""
+        env_file = '.env'
+        env_file_encoding = 'utf-8'
 
 
 config = Settings()  # type: ignore
