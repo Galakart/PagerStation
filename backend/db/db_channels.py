@@ -27,7 +27,7 @@ def get_group_channel(
         id_transmitter: int,
         capcode: int,
         id_fbit: int
-) -> GroupChannel:
+) -> GroupChannel | None:
     """Групповой канал по id"""
     channel = session.get(GroupChannel, (id_transmitter, capcode, id_fbit))
     return channel
@@ -53,13 +53,12 @@ def create_group_channel(
 
 def delete_group_channel(session: Session, id_transmitter: int, capcode: int, id_fbit: int) -> bool:
     """Удалить групповой канал"""
-    result = False
     channel = session.get(GroupChannel, (id_transmitter, capcode, id_fbit))
     if channel:
         session.delete(channel)
         session.commit()
-        result = True
-    return result
+        return True
+    return False
 
 
 def get_maildrop_channels(session: Session):
@@ -76,7 +75,7 @@ def get_maildrop_channel(
         id_transmitter: int,
         capcode: int,
         id_fbit: int
-) -> MailDropChannel:
+) -> MailDropChannel | None:
     """Новостной канал по id"""
     channel = session.get(MailDropChannel, (id_transmitter, capcode, id_fbit))
     return channel
@@ -107,13 +106,12 @@ def delete_maildrop_channel(
         id_fbit: int
 ) -> bool:
     """Удалить новостной канал"""
-    result = False
     channel = session.get(MailDropChannel, (id_transmitter, capcode, id_fbit))
     if channel:
         session.delete(channel)
         session.commit()
-        result = True
-    return result
+        return True
+    return False
 
 
 def get_group_channels_by_type(session: Session, id_group_type: int):
@@ -149,7 +147,7 @@ def get_rss_feeds(session: Session):
     return feeds
 
 
-def get_rss_feed(session: Session, id_feed: int) -> MaildropRssFeed:
+def get_rss_feed(session: Session, id_feed: int) -> MaildropRssFeed | None:
     """RSS-лента по id"""
     feed = session.get(MaildropRssFeed, id_feed)
     return feed
@@ -172,16 +170,18 @@ def create_rss_feed(
 
 def delete_rss_feed(session: Session, id_feed: int) -> bool:
     """Удалить RSS-ленту"""
-    result = False
     feed = session.get(MaildropRssFeed, id_feed)
     if feed:
         session.delete(feed)
         session.commit()
-        result = True
-    return result
+        return True
+    return False
 
 
-def get_rss_feed_by_maildrop_type(session: Session, id_maildrop_type: int) -> MaildropRssFeed:
+def get_rss_feed_by_maildrop_type(
+        session: Session,
+        id_maildrop_type: int
+) -> MaildropRssFeed | None:
     """Возвращает RSS-ленту, связанную с этим id_maildrop_type """
     result = session.execute(
         select(MaildropRssFeed)

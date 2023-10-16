@@ -12,6 +12,8 @@ from backend.constants import MESSAGE_MAX_LENGTH
 from .base import Base
 from .enums import GroupTypeEnum, MaildropTypeEnum, MessageTypeEnum
 
+# pylint: disable=too-few-public-methods
+
 
 class MessageType(Base):
     """Классификатор - типы сообщений"""
@@ -85,8 +87,6 @@ class MessageSchema(BaseModel):
     id_message_type: MessageTypeEnum = Field(
         title="Тип сообщения",
     )
-    # TODO добавить проверку, если id_message_type=1,
-    # то обязательно указывать id_pager, итд для остальных типов
     id_pager: Optional[int] = Field(
         title="id пейджера (для личных сообщений)",
     )

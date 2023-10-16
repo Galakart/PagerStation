@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from backend.models.model_messages import Message, MessageSchema
 
 
-def get_messages(session: Session, offset=None, limit=None):
+def get_messages(session: Session, offset: int, limit: int):
     """Все сообщения"""
     result = session.execute(
         select(Message)
@@ -19,7 +19,7 @@ def get_messages(session: Session, offset=None, limit=None):
     return messages
 
 
-def get_message(session: Session, uid_message: uuid.UUID) -> Message:
+def get_message(session: Session, uid_message: uuid.UUID) -> Message | None:
     """Сообщение по uid"""
     message = session.get(Message, uid_message)
     return message
@@ -46,14 +46,12 @@ def create_message(session: Session, message_schema_item: MessageSchema) -> Mess
 
 def delete_message(session: Session, uid_message: uuid.UUID) -> bool:
     """Удалить сообщение"""
-    result = False
     message = session.get(Message, uid_message)
-    # TODO выдавать ошибку если сообщение уже отправлено
     if message and not message.sent:
         session.delete(message)
         session.commit()
-        result = True
-    return result
+        return True
+    return False
 
 
 def get_unsent_messages(session: Session):
@@ -78,17 +76,16 @@ def get_unsent_messages(session: Session):
 
 def mark_message_sent(session: Session, uid_message: uuid.UUID) -> bool:
     """Отметить сообщение как отправленное"""
-    result = False
     message = session.get(Message, uid_message)
     if message:
         message.sent = True
         session.add(message)
         session.commit()
-        result = True
-    return result
+        return True
+    return False
 
 
-def get_last_sent_maildrop_by_type(session: Session, id_maildrop_type: int) -> Message:
+def get_last_sent_maildrop_by_type(session: Session, id_maildrop_type: int) -> Message | None:
     """Последнее отправленное MailDrop-сообщение"""
     result = session.execute(
         select(Message)

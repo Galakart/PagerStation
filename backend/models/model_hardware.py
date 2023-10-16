@@ -9,6 +9,8 @@ from .base import Base
 from .enums import BaudrateEnum, CodepageEnum, FbitEnum
 from .model_secondaries import user_pagers
 
+# pylint: disable=too-few-public-methods
+
 
 class Baudrate(Base):
     """Классификатор - скорости передачи данных"""

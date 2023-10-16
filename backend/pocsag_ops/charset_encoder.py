@@ -46,7 +46,7 @@ SYMBOLS_CYR = {
     'Ы': 'y',
     'Ь': 'x',
     'Э': '|',
-    'Ю': '\`',
+    'Ю': '\`', # pylint: disable=anomalous-backslash-in-string
     'Я': 'q',
     'а': 'A',
     'б': 'B',
@@ -146,6 +146,7 @@ class RuExtendedLanguagePack(TranslitLanguagePack):
 
 class CharsetEncoder():
     """Класс перекодировщик текста для POCSAG"""
+
     def __init__(self):
         autodiscover()
         registry.register(RuExtendedLanguagePack)
@@ -165,33 +166,34 @@ class CharsetEncoder():
         # так что так или иначе, независимо от заданной кодировки, нам нужно
         # преобразовать её в набор lat
         result = ''
-        if id_codepage == CodepageEnum.LAT.value:
-            # набор уже lat, ничего преобразовывать не нужно,
-            # только если встречаются русские символы, то транслитерируем их в латиницу.
-            # В конце проверим, не затесались ли символы,
-            # которых нету в наборе
-            lat_text = translit(message, 'ru_ext', reversed=True)
-            result = self.check_allowed_symbols(lat_text)
+        match id_codepage:
+            case CodepageEnum.LAT.value:
+                # набор уже lat, ничего преобразовывать не нужно,
+                # только если встречаются русские символы, то транслитерируем их в латиницу.
+                # В конце проверим, не затесались ли символы,
+                # которых нету в наборе
+                lat_text = translit(message, 'ru_ext', reversed=True)
+                result = self.check_allowed_symbols(lat_text)
 
-        elif id_codepage == CodepageEnum.CYR.value:
-            # переведём все английские слова в русский транслит (так как из-за сопоставления
-            #  таблиц перекодировок идёт смена регистра,
-            # чтобы потом не наблюдать на пейджере что-то вроде тЕЦХНОЛОГЫ),
-            # затем перекодируем в lat по словарю SYMBOLS_CYR
-            ru_text = translit(message, 'ru_ext')
-            for cyr_symbol, lat_symbol in SYMBOLS_CYR.items():
-                ru_text = ru_text.replace(cyr_symbol, lat_symbol)
-            result = self.check_allowed_symbols(ru_text)
+            case CodepageEnum.CYR.value:
+                # переведём все английские слова в русский транслит (так как из-за сопоставления
+                #  таблиц перекодировок идёт смена регистра,
+                # чтобы потом не наблюдать на пейджере что-то вроде тЕЦХНОЛОГЫ),
+                # затем перекодируем в lat по словарю SYMBOLS_CYR
+                ru_text = translit(message, 'ru_ext')
+                for cyr_symbol, lat_symbol in SYMBOLS_CYR.items():
+                    ru_text = ru_text.replace(cyr_symbol, lat_symbol)
+                result = self.check_allowed_symbols(ru_text)
 
-        elif id_codepage == CodepageEnum.LINGUIST.value:
-            # Транслитерация не нужна, но в этом наборе только заглавные буквы,
-            # так что сделаем их такими, и потом уже кодируем встречающиеся русские
-            # заглавные символы по словарю SYMBOLS_LINGUIST.
-            # Встречающиеся латинские заглавные кодировать не нужно, они совпадают с набором lat
-            linguist_text = message.upper()
-            for cyr_symbol, lat_symbol in SYMBOLS_LINGUIST.items():
-                linguist_text = linguist_text.replace(cyr_symbol, lat_symbol)
-            result = self.check_allowed_symbols(linguist_text)
+            case CodepageEnum.LINGUIST.value:
+                # Транслитерация не нужна, но в этом наборе только заглавные буквы,
+                # так что сделаем их такими, и потом уже кодируем встречающиеся русские
+                # заглавные символы по словарю SYMBOLS_LINGUIST.
+                # Встречающиеся латинские заглавные кодировать не нужно, они совпадают с набором lat
+                linguist_text = message.upper()
+                for cyr_symbol, lat_symbol in SYMBOLS_LINGUIST.items():
+                    linguist_text = linguist_text.replace(cyr_symbol, lat_symbol)
+                result = self.check_allowed_symbols(linguist_text)
 
         return result
 

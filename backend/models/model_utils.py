@@ -6,6 +6,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
 
+# pylint: disable=too-few-public-methods
+
 
 class StrictsIPaddress(Base):
     """IP адреса для ограничений на количество сообщений за период"""

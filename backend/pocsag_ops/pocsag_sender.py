@@ -34,14 +34,15 @@ def message_to_air(
         LOGGER.error('Не найден бинарник pocsag, сообщение просто помечено как отправленное')
         return True
 
-    if id_baudrate == BaudrateEnum.BAUD_512.value:
-        baudrate = 512
-    elif id_baudrate == BaudrateEnum.BAUD_1200.value:
-        baudrate = 1200
-    elif id_baudrate == BaudrateEnum.BAUD_2400.value:
-        baudrate = 2400
-    else:
-        return False
+    match id_baudrate:
+        case BaudrateEnum.BAUD_512.value:
+            baudrate = 512
+        case BaudrateEnum.BAUD_1200.value:
+            baudrate = 1200
+        case BaudrateEnum.BAUD_2400.value:
+            baudrate = 2400
+        case _:
+            return False
 
     capcode_formatted = f'{capcode:07d}'
     message_text = charset_encoder.encode_message(message, id_codepage)

@@ -12,7 +12,7 @@ from backend.models.model_user import User, UserSchema
 LOGGER = logging.getLogger()
 
 
-def get_users(session: Session, offset=None, limit=None):
+def get_users(session: Session, offset: int, limit: int):
     """Все пользователи"""
     result = session.execute(
         select(User)
@@ -23,7 +23,7 @@ def get_users(session: Session, offset=None, limit=None):
     return users
 
 
-def get_user(session: Session, uid_user: uuid.UUID) -> User:
+def get_user(session: Session, uid_user: uuid.UUID) -> User | None:
     """Пользователь по uid"""
     user = session.get(User, uid_user)
     return user
@@ -47,7 +47,7 @@ def update_user(session: Session, uid_user: uuid.UUID, user_schema_item: UserSch
     user = session.get(User, uid_user)
     if user:
         user.fio = user_schema_item.fio
-        user.datar = user_schema_item.datar # type: ignore
+        user.datar = user_schema_item.datar  # type: ignore
 
         session.add(user)
         session.commit()
@@ -57,13 +57,12 @@ def update_user(session: Session, uid_user: uuid.UUID, user_schema_item: UserSch
 
 def delete_user(session: Session, uid_user: uuid.UUID) -> bool:
     """Удалить пользователя"""
-    result = False
     user = session.get(User, uid_user)
     if user:
         session.delete(user)
         session.commit()
-        result = True
-    return result
+        return True
+    return False
 
 
 def register_user_pager(session: Session, uid_user: uuid.UUID, id_pager: int) -> User:
@@ -89,7 +88,7 @@ def unregister_user_pager(session: Session, uid_user: uuid.UUID, id_pager: int) 
     return user
 
 
-def get_users_with_birthday(session: Session, offset=None, limit=None):
+def get_users_with_birthday(session: Session):
     """Пользователи у которых сегодня днюха"""
     today_date = datetime.date.today()
     result = session.execute(
@@ -98,11 +97,9 @@ def get_users_with_birthday(session: Session, offset=None, limit=None):
             and_(
                 extract('month', User.datar) == today_date.month,
                 extract('day', User.datar) == today_date.day,
-                User.pagers != None, # pylint: disable=singleton-comparison
+                User.pagers != None,  # pylint: disable=singleton-comparison
             )
         )
-        .offset(offset)
-        .limit(limit)
     )
     users = result.scalars().all()
     return users

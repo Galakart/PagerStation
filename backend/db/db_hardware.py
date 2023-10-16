@@ -10,18 +10,16 @@ from backend.models.model_hardware import (Pager, PagerSchema, Transmitter,
 LOGGER = logging.getLogger('applog')
 
 
-def get_transmitters(session: Session, offset=None, limit=None):
+def get_transmitters(session: Session):
     """Все передатчики"""
     result = session.execute(
         select(Transmitter)
-        .offset(offset)
-        .limit(limit)
     )
     transmitters = result.scalars().all()
     return transmitters
 
 
-def get_transmitter(session: Session, id_transmitter: int) -> Transmitter:
+def get_transmitter(session: Session, id_transmitter: int) -> Transmitter | None:
     """Передатчик по id"""
     transmitter = session.get(Transmitter, id_transmitter)
     return transmitter
@@ -60,16 +58,15 @@ def update_transmitter(
 
 def delete_transmitter(session: Session, id_transmitter: int) -> bool:
     """Удалить передатчик"""
-    result = False
     transmitter = session.get(Transmitter, id_transmitter)
     if transmitter:
         session.delete(transmitter)
         session.commit()
-        result = True
-    return result
+        return True
+    return False
 
 
-def get_pagers(session: Session, offset=None, limit=None):
+def get_pagers(session: Session, offset: int, limit: int):
     """Все пейджеры"""
     result = session.execute(
         select(Pager)
@@ -80,7 +77,7 @@ def get_pagers(session: Session, offset=None, limit=None):
     return pagers
 
 
-def get_pager(session: Session, id_pager: int) -> Pager:
+def get_pager(session: Session, id_pager: int) -> Pager | None:
     """Пейджер по его абонентскому номеру"""
     pager = session.get(Pager, id_pager)
     return pager
@@ -118,10 +115,9 @@ def update_pager(session: Session, id_pager: int, pager_schema_item: PagerSchema
 
 def delete_pager(session: Session, id_pager: int) -> bool:
     """Удалить пейджер"""
-    result = False
     pager = session.get(Pager, id_pager)
     if pager:
         session.delete(pager)
         session.commit()
-        result = True
-    return result
+        return True
+    return False

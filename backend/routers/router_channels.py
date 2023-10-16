@@ -13,14 +13,12 @@ router = APIRouter(
     tags=["channels"],
 )
 
-# TODO все ли REST методы нужны
-
 
 @router.get("/group/", response_model=list[GroupChannelSchema])
 def get_group_channels(session: Session = Depends(get_session)):
     """Вывод всех групповых каналов"""
-    group_channels_tuple = db_channels.get_group_channels(session)
-    return group_channels_tuple
+    group_channels = db_channels.get_group_channels(session)
+    return group_channels
 
 
 @router.post("/group/", response_model=GroupChannelSchema, status_code=status.HTTP_201_CREATED)
@@ -62,8 +60,8 @@ def delete_group_channel(
 @router.get("/maildrop/", response_model=list[MailDropChannelSchema])
 def get_maildrop_channels(session: Session = Depends(get_session)):
     """Вывод всех новостных каналов"""
-    maildrop_channels_tuple = db_channels.get_maildrop_channels(session)
-    return maildrop_channels_tuple
+    maildrop_channels = db_channels.get_maildrop_channels(session)
+    return maildrop_channels
 
 
 @router.post("/maildrop/", response_model=MailDropChannelSchema,
@@ -106,8 +104,8 @@ def delete_maildrop_channel(
 @router.get("/rss_feeds/", response_model=list[MaildropRssFeedSchema])
 def get_rss_feeds(session: Session = Depends(get_session)):
     """Вывод всех rss лент"""
-    rss_feeds_tuple = db_channels.get_rss_feeds(session)
-    return rss_feeds_tuple
+    rss_feeds = db_channels.get_rss_feeds(session)
+    return rss_feeds
 
 
 @router.post("/rss_feeds/", response_model=MaildropRssFeedSchema,

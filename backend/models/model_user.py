@@ -10,6 +10,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base
 from .model_secondaries import user_pagers
 
+# pylint: disable=too-few-public-methods
+
 
 class User(Base):
     """Пользователи"""

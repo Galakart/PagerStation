@@ -163,27 +163,28 @@ def update_currency():
                 f'{URL_CURRENCY}{URL_CURRENCY_ADDITIONAL_PING}',
                 timeout=TIMEOUT
             )
-            if response_ping.status_code == HTTPStatus.OK:
-                cur_usd = requests.get(
-                    f'{URL_CURRENCY}{URL_CURRENCY_ADDITIONAL_USDRUB}',
-                    timeout=TIMEOUT
-                ).text
-                cur_eur = requests.get(
-                    f'{URL_CURRENCY}{URL_CURRENCY_ADDITIONAL_EURRUB}',
-                    timeout=TIMEOUT
-                ).text
-                cur_btc = requests.get(
-                    f'{URL_CURRENCY}{URL_CURRENCY_ADDITIONAL_BTCRUB}',
-                    timeout=TIMEOUT
-                ).text
+            if response_ping.status_code != HTTPStatus.OK:
+                raise Exception
 
-                message_text = (
-                    'Курс валют. '
-                    f'Доллар: {cur_usd} руб. '
-                    f'Евро: {cur_eur} руб. '
-                    f'Биткоин: {cur_btc} руб. '
-                )
-            # TODO логирование если response не удался
+            cur_usd = requests.get(
+                f'{URL_CURRENCY}{URL_CURRENCY_ADDITIONAL_USDRUB}',
+                timeout=TIMEOUT
+            ).text
+            cur_eur = requests.get(
+                f'{URL_CURRENCY}{URL_CURRENCY_ADDITIONAL_EURRUB}',
+                timeout=TIMEOUT
+            ).text
+            cur_btc = requests.get(
+                f'{URL_CURRENCY}{URL_CURRENCY_ADDITIONAL_BTCRUB}',
+                timeout=TIMEOUT
+            ).text
+
+            message_text = (
+                'Курс валют. '
+                f'Доллар: {cur_usd} руб. '
+                f'Евро: {cur_eur} руб. '
+                f'Биткоин: {cur_btc} руб. '
+            )
 
         except Exception as ex:
             LOGGER.error('Ошибка получения курсов валют\n %s', ex, exc_info=True)

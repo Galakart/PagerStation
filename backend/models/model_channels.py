@@ -10,6 +10,8 @@ from .base import Base
 from .enums import GroupTypeEnum, MaildropTypeEnum
 from .model_hardware import CodepageEnum, FbitEnum
 
+# pylint: disable=too-few-public-methods
+
 
 class GroupChannel(Base):
     """Групповые каналы трансмиттера"""

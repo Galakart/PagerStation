@@ -22,8 +22,8 @@ def get_users(
     session: Session = Depends(get_session)
 ):
     """Вывод всех пользователей"""
-    users_tuple = db_user.get_users(session, offset, limit)
-    return users_tuple
+    users = db_user.get_users(session, offset, limit)
+    return users
 
 
 @router.get("/{uid_user}", response_model=UserSchema)
@@ -135,11 +135,7 @@ def unregister_user_pager(
 
 
 @router.get("/birthdays/", response_model=list[UserSchema])
-def get_users_with_birthdays(
-    session: Session = Depends(get_session),
-    offset: int = 0,
-    limit: int = const.LIMIT_GET
-):
+def get_users_with_birthdays(session: Session = Depends(get_session)):
     """Вывод всех пользователей, у кого сегодня день рождения"""
-    users_tuple = db_user.get_users_with_birthday(session, offset, limit)
-    return users_tuple
+    users = db_user.get_users_with_birthday(session)
+    return users

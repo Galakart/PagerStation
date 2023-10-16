@@ -1,6 +1,8 @@
 """Класс с конфигурациями из переменных окружения"""
 from pydantic import BaseSettings, SecretStr
 
+# pylint: disable=too-few-public-methods
+
 
 class Settings(BaseSettings):
     """Класс для доступа к переменным окружения"""

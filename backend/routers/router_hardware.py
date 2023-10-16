@@ -14,15 +14,10 @@ router = APIRouter(
 
 
 @router.get("/transmitters/", response_model=list[TransmitterSchema])
-def get_transmitters(
-    offset: int = 0,
-    limit: int = const.LIMIT_GET,
-    session: Session = Depends(get_session)
-):
+def get_transmitters(session: Session = Depends(get_session)):
     """Вывод всех передатчиков"""
-    # TODO нужны ли стандартные значения в offset и limit
-    transmitters_tuple = db_hardware.get_transmitters(session, offset, limit)
-    return transmitters_tuple
+    transmitters = db_hardware.get_transmitters(session)
+    return transmitters
 
 
 @router.get("/transmitters/{id_transmitter}", response_model=TransmitterSchema)
@@ -98,8 +93,8 @@ def get_pagers(
     session: Session = Depends(get_session)
 ):
     """Вывод всех пейджеров"""
-    pagers_tuple = db_hardware.get_pagers(session, offset, limit)
-    return pagers_tuple
+    pagers = db_hardware.get_pagers(session, offset, limit)
+    return pagers
 
 
 @router.get("/pagers/{id_pager}", response_model=PagerSchema)

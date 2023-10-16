@@ -69,6 +69,5 @@ def job_check_celebrations():
 
 scheduler.start()
 
-
 # для запуска в режиме отладки (в консоли)
 # uvicorn backend.__main__:app --host 0.0.0.0 --port 8099 --reload
