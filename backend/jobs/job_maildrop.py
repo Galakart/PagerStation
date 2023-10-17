@@ -138,8 +138,9 @@ def update_forecast():
         temp_tomorrow_day = round(one_call.forecast_daily[1].temperature('celsius')['day'])
         if temp_tomorrow_day > 0:
             temp_tomorrow_day = f'+{temp_tomorrow_day}'
-        message_text += f'Завтра: {status_tomorrow}, утром {temp_tomorrow_morn}, \
-            днём {temp_tomorrow_day}'
+        message_text += (
+            f'Завтра: {status_tomorrow}, утром {temp_tomorrow_morn}, днём {temp_tomorrow_day}'
+        )
 
         _create_maildrop_message(session, id_maildrop_type, message_text)
 

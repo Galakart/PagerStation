@@ -46,7 +46,7 @@ SYMBOLS_CYR = {
     'Ы': 'y',
     'Ь': 'x',
     'Э': '|',
-    'Ю': '\`', # pylint: disable=anomalous-backslash-in-string
+    'Ю': '\`',  # pylint: disable=anomalous-backslash-in-string
     'Я': 'q',
     'а': 'A',
     'б': 'B',
@@ -154,13 +154,16 @@ class CharsetEncoder():
     def encode_message(self, message, id_codepage):
         """Кодирование текста сообщения в кодировки POCSAG"""
         message = message \
-            .replace('«', '"') \
-            .replace('»', '"') \
+            .replace('«', '\"') \
+            .replace('»', '\"') \
+            .replace('"', '\"') \
             .replace(' ', ' ') \
+            .replace('$', '\$') \
+            .replace('—', '-') \
             .replace('&amp;', '&') \
             .replace('&gt;', '>') \
             .replace('&lt;', '<') \
-            .replace('&quot;', '"')
+            .replace('&quot;', '\"')
 
         # в эфир передаются только латинские буквы и спецсимволы (то есть по сути, весь набор lat),
         # так что так или иначе, независимо от заданной кодировки, нам нужно
