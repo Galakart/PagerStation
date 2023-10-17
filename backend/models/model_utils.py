@@ -17,6 +17,5 @@ class StrictsIPaddress(Base):
     last_send: Mapped[datetime.datetime] = mapped_column(
         DateTime,
         nullable=False,
-        default=datetime.datetime.now,
-        comment='Дата-время последней отправки'
+        default=datetime.datetime.now
     )

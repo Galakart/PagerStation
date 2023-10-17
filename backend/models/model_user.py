@@ -19,7 +19,7 @@ class User(Base):
 
     uid: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
     fio: Mapped[str] = mapped_column(String(200), nullable=False)
-    datar: Mapped[datetime.date] = mapped_column(Date, nullable=True)
+    datar: Mapped[datetime.date | None] = mapped_column(Date)
     pagers: Mapped[list] = relationship('Pager', secondary=user_pagers, back_populates='users')
 
 

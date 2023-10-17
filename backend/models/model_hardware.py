@@ -2,7 +2,7 @@
 from typing import Optional
 
 from pydantic import BaseModel, Field
-from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy import Boolean, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -44,6 +44,8 @@ class Transmitter(Base):
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     freq: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)
     id_baudrate: Mapped[int] = mapped_column(Integer, ForeignKey('n_baudrates.id'), nullable=False)
+    external: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    external_command: Mapped[str | None] = mapped_column(String(512))
 
 
 class TransmitterSchema(BaseModel):
@@ -62,6 +64,22 @@ class TransmitterSchema(BaseModel):
     )
     id_baudrate: BaudrateEnum = Field(
         title="Скорость передачи",
+    )
+    external: bool = Field(
+        title="Внешний ли передатчик",
+        default=False,
+    )
+    external_command: Optional[str] = Field(
+        title="Команда для передачи сообщения во внешний передатчик",
+        description=(
+            "Можно использовать шаблоны"
+        ),
+        examples=[
+            (
+                "./radiosend -c {capcode} -s {fbit} -f {freq} -b {id_baudrate} "
+                "-u {id_codepage} -m {message}"
+            )],
+        max_length=512,
     )
 
     class Config:  # pylint: disable=missing-class-docstring

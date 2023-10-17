@@ -5,18 +5,18 @@ from enum import IntEnum, unique
 @unique
 class BaudrateEnum(IntEnum):
     """Скорость передачи сообщения"""
-    BAUD_512 = 1
-    BAUD_1200 = 2
-    BAUD_2400 = 3
+    BAUD_512 = 512
+    BAUD_1200 = 1200
+    BAUD_2400 = 2400
 
 
 @unique
 class FbitEnum(IntEnum):
     """Номер источника"""
-    BIT_0 = 0
     BIT_1 = 1
     BIT_2 = 2
     BIT_3 = 3
+    BIT_4 = 4
 
 
 @unique

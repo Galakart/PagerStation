@@ -30,7 +30,9 @@ def create_transmitter(session: Session, transmitter_schema_item: TransmitterSch
     transmitter = Transmitter(
         name=transmitter_schema_item.name,
         freq=transmitter_schema_item.freq,
-        id_baudrate=transmitter_schema_item.id_baudrate.value
+        id_baudrate=transmitter_schema_item.id_baudrate.value,
+        external=transmitter_schema_item.external,
+        external_command=transmitter_schema_item.external_command,
     )
     session.add(transmitter)
     session.commit()
@@ -49,6 +51,8 @@ def update_transmitter(
         transmitter.name = transmitter_schema_item.name
         transmitter.freq = transmitter_schema_item.freq
         transmitter.id_baudrate = transmitter_schema_item.id_baudrate.value
+        transmitter.external = transmitter_schema_item.external
+        transmitter.external_command = transmitter_schema_item.external_command
 
         session.add(transmitter)
         session.commit()

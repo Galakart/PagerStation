@@ -31,10 +31,9 @@ def send_messages():
                         continue
 
                     result = pocsag_sender.message_to_air(
+                        transmitter=transmitter_item,
                         capcode=pager_item.capcode,
                         fbit=pager_item.id_fbit,
-                        freq=transmitter_item.freq,
-                        id_baudrate=transmitter_item.id_baudrate,
                         id_codepage=pager_item.id_codepage,
                         message=message_item.message
                     )
@@ -61,10 +60,9 @@ def send_messages():
                         if not transmitter_item:
                             continue
                         result = pocsag_sender.message_to_air(
+                            transmitter=transmitter_item,
                             capcode=group_channel.capcode,
                             fbit=group_channel.id_fbit,
-                            freq=transmitter_item.freq,
-                            id_baudrate=transmitter_item.id_baudrate,
                             id_codepage=group_channel.id_codepage,
                             message=message_item.message
                         )
@@ -94,10 +92,9 @@ def send_messages():
                         if not transmitter_item:
                             continue
                         result = pocsag_sender.message_to_air(
+                            transmitter=transmitter_item,
                             capcode=maildrop_channel.capcode,
                             fbit=maildrop_channel.id_fbit,
-                            freq=transmitter_item.freq,
-                            id_baudrate=transmitter_item.id_baudrate,
                             id_codepage=maildrop_channel.id_codepage,
                             message=message_item.message
                         )

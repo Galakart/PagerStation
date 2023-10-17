@@ -52,27 +52,23 @@ class Message(Base):
     id_pager: Mapped[int] = mapped_column(
         Integer,
         ForeignKey('pagers.id'),
-        nullable=True,
-        comment="указывается если сообщение личное (id_message_type=1)"
+        nullable=True
     )
     id_group_type: Mapped[int] = mapped_column(
         Integer,
         ForeignKey('n_group_types.id'),
-        nullable=True,
-        comment="указывается если сообщение групповое (id_message_type=2)"
+        nullable=True
     )
     id_maildrop_type: Mapped[int] = mapped_column(
         Integer,
         ForeignKey('n_maildrop_types.id'),
-        nullable=True,
-        comment="указывается если сообщение новостное (id_message_type=3)"
+        nullable=True
     )
     message: Mapped[str] = mapped_column(String(MESSAGE_MAX_LENGTH), nullable=False)
     sent: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     datetime_send_after: Mapped[datetime.datetime] = mapped_column(
         DateTime,
-        nullable=True,
-        comment='Отправить после указанной даты-времени'
+        nullable=True
     )
     datetime_create: Mapped[datetime.datetime] = mapped_column(
         DateTime,
