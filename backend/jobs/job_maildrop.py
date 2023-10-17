@@ -53,6 +53,9 @@ def update_maildrop():
 
 def update_forecast():
     """Обновление прогноза погоды"""
+    if not appconf.owm_token:
+        return
+
     id_maildrop_type = MaildropTypeEnum.WEATHER
     today_datetime = datetime.datetime.now()
 
