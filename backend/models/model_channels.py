@@ -95,7 +95,7 @@ class MailDropChannelSchema(BaseModel):
     )
 
     class Config:  # pylint: disable=missing-class-docstring
-        from_attrorm_modeibutes = True
+        orm_mode = True
 
 
 class MaildropRssFeed(Base):
