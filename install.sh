@@ -22,9 +22,11 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 alembic upgrade head
+python create_api_user.py
 deactivate
 "
 cp env_example .env
+echo "SECRET_KEY="$(openssl rand -hex 32) >> .env
 
 # PyOWM 3.3.0 bug
 sed -i 's/assert sender,/assert sender is not None,/g' venv/lib/python*/site-packages/pyowm/weatherapi25/national_weather_alert.py

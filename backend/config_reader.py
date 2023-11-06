@@ -6,9 +6,10 @@ from pydantic import BaseSettings, SecretStr
 
 class Settings(BaseSettings):
     """Класс для доступа к переменным окружения"""
-    owm_token: SecretStr
-    owm_latitude: str
-    owm_longitude: str
+    OWM_TOKEN: SecretStr
+    OWM_LATITUDE: str
+    OWM_LONGITUDE: str
+    SECRET_KEY: str
 
     class Config:
         """Переменные окружения загружаются из файла .env в корне проекта"""

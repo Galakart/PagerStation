@@ -53,7 +53,7 @@ def update_maildrop():
 
 def update_forecast():
     """Обновление прогноза погоды"""
-    if not appconf.owm_token:
+    if not appconf.OWM_TOKEN:
         return
 
     id_maildrop_type = MaildropTypeEnum.WEATHER
@@ -79,11 +79,11 @@ def update_forecast():
                 "timeout_secs": 30,
                 "max_retries": 3,
             }
-            owm = OWM(appconf.owm_token.get_secret_value(), config_dict)
+            owm = OWM(appconf.OWM_TOKEN.get_secret_value(), config_dict)
             mgr = owm.weather_manager()
             one_call = mgr.one_call(
-                lat=float(appconf.owm_latitude),
-                lon=float(appconf.owm_longitude)
+                lat=float(appconf.OWM_LATITUDE),
+                lon=float(appconf.OWM_LONGITUDE)
             )
             assert isinstance(one_call.forecast_hourly, list)
             assert isinstance(one_call.forecast_daily, list)

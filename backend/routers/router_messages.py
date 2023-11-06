@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 import backend.constants as const
 from backend.db import db_messages
+from backend.db.auth import oauth2_scheme
 from backend.db.connection import get_session
 from backend.models.enums import MessageTypeEnum
 from backend.models.model_messages import MessageSchema
@@ -13,6 +14,7 @@ from backend.models.model_messages import MessageSchema
 router = APIRouter(
     prefix="/messages",
     tags=["messages"],
+    dependencies=[Depends(oauth2_scheme)],
 )
 
 

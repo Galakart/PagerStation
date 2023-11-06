@@ -6,12 +6,14 @@ from sqlalchemy.orm import Session
 
 import backend.constants as const
 from backend.db import db_hardware, db_user
+from backend.db.auth import oauth2_scheme
 from backend.db.connection import get_session
 from backend.models.model_user import UserSchema
 
 router = APIRouter(
     prefix="/users",
     tags=["users"],
+    dependencies=[Depends(oauth2_scheme)],
 )
 
 
@@ -33,6 +35,22 @@ def get_user(uid_user: uuid.UUID, session: Session = Depends(get_session)):
     if not user_item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден")
     return user_item
+
+
+@router.get("/me/", response_model=UserSchema)
+def get_user_me(
+    token: str = Depends(oauth2_scheme),
+    session: Session = Depends(get_session)
+):
+    """Текущий пользователь api (по данным токена доступа)"""
+    user = db_user.get_user_by_token(session=session, token=token)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user
 
 
 @router.post("/", response_model=UserSchema, status_code=status.HTTP_201_CREATED)

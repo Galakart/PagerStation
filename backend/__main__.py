@@ -9,8 +9,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.jobs import job_maildrop, job_messages
-from backend.routers import (router_channels, router_hardware, router_messages,
-                             router_users, router_utils)
+from backend.routers import (router_channels, router_default, router_hardware,
+                             router_messages, router_users)
 
 app = FastAPI()
 app.add_middleware(
@@ -24,7 +24,7 @@ app.include_router(router_hardware.router)
 app.include_router(router_channels.router)
 app.include_router(router_users.router)
 app.include_router(router_messages.router)
-app.include_router(router_utils.router)
+app.include_router(router_default.router)
 
 scheduler = BackgroundScheduler(
     jobstores={
