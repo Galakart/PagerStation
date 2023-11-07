@@ -1,39 +1,24 @@
 """Роутер - вспомогательное"""
 import datetime
-from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Path, status
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
 
 import backend.constants as const
-from backend.db import db_user
 from backend.db.auth import create_access_token
-from backend.db.connection import get_session
-from backend.models.model_user import TokenSchema
+from backend.models.model_user import TokenSchema, User
+from backend.routers.dependencies import check_user_credentials_dependency
 
 router = APIRouter()
 
 
 @router.post("/token/", response_model=TokenSchema)
-async def login_for_access_token(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    session: Session = Depends(get_session)
-):
+async def login_for_access_token(user: User = Depends(check_user_credentials_dependency)):
     """Логин и получение токена доступа"""
-    user = db_user.authenticate_user(
-        session=session,
-        username=form_data.username,
-        password=form_data.password
-    )
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    if not user.api_login:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     access_token = create_access_token(
-        data={"sub": user.api_login},
+        username=user.api_login,
         expires_delta=datetime.timedelta(minutes=const.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     return {"access_token": access_token, "token_type": "bearer"}

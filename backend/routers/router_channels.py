@@ -3,16 +3,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.db import db_channels
-from backend.db.auth import oauth2_scheme
 from backend.db.connection import get_session
 from backend.models.model_channels import (GroupChannelSchema,
                                            MailDropChannelSchema,
                                            MaildropRssFeedSchema)
+from backend.routers.dependencies import check_user_token_dependency
 
 router = APIRouter(
     prefix="/channels",
     tags=["channels"],
-    dependencies=[Depends(oauth2_scheme)],
+    dependencies=[Depends(check_user_token_dependency)],
 )
 
 

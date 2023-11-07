@@ -22,7 +22,6 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 alembic upgrade head
-python create_api_user.py
 deactivate
 "
 cp env_example .env
@@ -70,6 +69,12 @@ EOF
 echo Installing service...
 sudo systemctl daemon-reload
 sudo systemctl enable pagerstation
+
+bash -c "
+source venv/bin/activate
+python create_api_user.py
+deactivate
+"
 
 echo ------------------------------------
 echo Установка завершена

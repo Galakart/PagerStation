@@ -10,4 +10,4 @@ MESSAGE_MAX_LENGTH = 900
 TOKEN_ALGORITHM = "HS256"
 
 # время истечения срока действия токена
-ACCESS_TOKEN_EXPIRE_MINUTES = 5
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 сутки

@@ -6,42 +6,10 @@ import uuid
 from sqlalchemy import and_, extract, select
 from sqlalchemy.orm import Session
 
-from backend.db import auth
 from backend.models.model_hardware import Pager
 from backend.models.model_user import User, UserSchema
 
 LOGGER = logging.getLogger()
-
-
-def authenticate_user(session: Session, username: str, password: str) -> User | None:
-    result = session.execute(
-        select(User)
-        .where(
-            User.api_login == username
-        )
-    )
-    user = result.scalar()
-
-    if not user:
-        return None
-    if not auth.verify_password(password, user.api_password):
-        return None
-    return user
-
-
-def get_user_by_token(session: Session, token: str) -> User | None:
-    username = auth.get_username_from_token(token)
-    result = session.execute(
-        select(User)
-        .where(
-            User.api_login == username
-        )
-    )
-    user = result.scalar()
-
-    if not user:
-        return None
-    return user
 
 
 def get_users(session: Session, offset: int, limit: int):
@@ -61,6 +29,18 @@ def get_user(session: Session, uid_user: uuid.UUID) -> User | None:
     return user
 
 
+def get_user_by_login(session: Session, api_login: str) -> User | None:
+    """Пользователь по api_login"""
+    result = session.execute(
+        select(User)
+        .where(
+            User.api_login == api_login
+        )
+    )
+    user = result.scalar()
+    return user
+
+
 def create_user(session: Session, user_schema_item: UserSchema) -> User:
     """Создать пользователя"""
     user = User(
@@ -68,7 +48,7 @@ def create_user(session: Session, user_schema_item: UserSchema) -> User:
         fio=user_schema_item.fio,
         datar=user_schema_item.datar,
         api_login=user_schema_item.api_login,
-        api_password=auth.get_password_hash(user_schema_item.api_password)
+        api_password=user_schema_item.api_password
     )
     session.add(user)
     session.commit()
@@ -85,7 +65,7 @@ def update_user(session: Session, uid_user: uuid.UUID, user_schema_item: UserSch
         if user_schema_item.api_login:
             user.api_login = user_schema_item.api_login
         if user_schema_item.api_password:
-            user.api_password = auth.get_password_hash(user_schema_item.api_password)
+            user.api_password = user_schema_item.api_password
         # TODO проверить правильное изменение логина/пароля api
 
         session.add(user)
