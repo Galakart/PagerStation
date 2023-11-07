@@ -4,7 +4,11 @@ from enum import IntEnum, unique
 
 import requests
 
+REST_TIMEOUT = 4
+
+AUTH_HEADER = {"Authorization": f"Bearer {os.environ['API_TOKEN']}"}
 API_URL = os.environ['API_URL']
+USERS_ME_URL = f'{API_URL}/users/me/'
 PAGER_URL = f'{API_URL}/hardware/pagers/'
 CREATE_MESSAGE_URL = f'{API_URL}/messages/'
 
@@ -30,7 +34,21 @@ def handle_event(event, context):
     text = 'Назовите номер абонента'
     state = StatesEnum.ASK_ID_PAGER
 
-    # TODO проверка на доступность всех параметров
+    # TODO повторяющиеся фразы об ошибках
+    # TODO обработка слова Хватит для остановки навыка
+    # TODO добавить разнообразные фразы для девушки
+
+    # начальный пинг сервера
+    if event['session']['new']:
+        try:
+            rest_response = requests.get(USERS_ME_URL, headers=AUTH_HEADER, timeout=REST_TIMEOUT)
+            if rest_response.status_code != 200:
+                raise requests.exceptions.Timeout
+        except requests.exceptions.Timeout:
+            text = 'Сервис сейчас недоступен. Попробуйте попозже.'
+            end_session = True
+
+    # TODO проверка на доступность всех параметров (и вообще нужно ли это)
     if 'state' in event and 'step_number' in event['state']['session']:
         match event['state']['session']['step_number']:
 
@@ -38,7 +56,7 @@ def handle_event(event, context):
                 id_pager = _get_id_pager_from_request(event['request']['nlu'])
                 if id_pager:
                     try:
-                        rest_response = requests.get(f'{PAGER_URL}{id_pager}', timeout=3)
+                        rest_response = requests.get(f'{PAGER_URL}{id_pager}', headers=AUTH_HEADER, timeout=REST_TIMEOUT)
                         if rest_response.status_code == 200:
                             text = f'Хорошо, продиктуйте сообщение для абонента {id_pager}'
                             state = StatesEnum.ASK_MESSAGE
@@ -62,7 +80,7 @@ def handle_event(event, context):
                     'message': message
                 }
                 try:
-                    rest_response = requests.post(CREATE_MESSAGE_URL, json=payload, timeout=3)
+                    rest_response = requests.post(CREATE_MESSAGE_URL, json=payload, headers=AUTH_HEADER, timeout=REST_TIMEOUT)
                     if rest_response.status_code == 201:
                         text = 'Сообщение будет отправлено. До свидания.'
                     else:
