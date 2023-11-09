@@ -31,7 +31,7 @@ def handle_event(event, context):
     end_session = False
 
     # Начальный текст
-    text = 'Назовите номер абонента'
+    text = 'Добрый день, назовите номер абонента.'
     state = StatesEnum.ASK_ID_PAGER
 
     # TODO повторяющиеся фразы об ошибках
