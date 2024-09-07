@@ -26,11 +26,9 @@ HOUR_DAY = 14
 HOUR_EVENING = 21
 weather_preferred_hours = [HOUR_MORNING, HOUR_DAY, HOUR_EVENING]  # обновление в 7:00, 14:00, 21:00
 
-URL_CURRENCY = 'https://api.coingate.com/v2'
-URL_CURRENCY_ADDITIONAL_PING = '/ping'
-URL_CURRENCY_ADDITIONAL_USDRUB = '/rates/merchant/USD/RUB'
-URL_CURRENCY_ADDITIONAL_EURRUB = '/rates/merchant/EUR/RUB'
-URL_CURRENCY_ADDITIONAL_BTCRUB = '/rates/merchant/BTC/RUB'
+URL_CURRENCY_CBR = 'https://www.cbr-xml-daily.ru/daily_json.js'
+URL_CURRENCY_COINGECKO_BTC = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=rub'
+URL_CURRENCY_COINGECKO_BTC_YESTERDAY = 'https://api.coingecko.com/api/v3/coins/bitcoin/history?date={date}&localization=false'
 currency_preferred_hours = [7]  # обновление раз в день в 7:00
 
 rss_preferred_hours = [7]  # обновление раз в день в 7:00
@@ -163,31 +161,39 @@ def update_currency():
             return
 
         try:
-            response_ping = requests.get(
-                f'{URL_CURRENCY}{URL_CURRENCY_ADDITIONAL_PING}',
-                timeout=TIMEOUT
-            )
-            if response_ping.status_code != HTTPStatus.OK:
+            response_cbr = requests.get(URL_CURRENCY_CBR, timeout=TIMEOUT)
+            if response_cbr.status_code != HTTPStatus.OK:
                 raise Exception
+            data_cbr = response_cbr.json()
 
-            cur_usd = requests.get(
-                f'{URL_CURRENCY}{URL_CURRENCY_ADDITIONAL_USDRUB}',
-                timeout=TIMEOUT
-            ).text
-            cur_eur = requests.get(
-                f'{URL_CURRENCY}{URL_CURRENCY_ADDITIONAL_EURRUB}',
-                timeout=TIMEOUT
-            ).text
-            cur_btc = requests.get(
-                f'{URL_CURRENCY}{URL_CURRENCY_ADDITIONAL_BTCRUB}',
-                timeout=TIMEOUT
-            ).text
+            usd_rate = data_cbr['Valute']['USD']['Value']
+            eur_rate = data_cbr['Valute']['EUR']['Value']
+
+            usd_prev_rate = data_cbr['Valute']['USD']['Previous']
+            eur_prev_rate = data_cbr['Valute']['EUR']['Previous']
+
+            response_coingecko = requests.get(URL_CURRENCY_COINGECKO_BTC, timeout=TIMEOUT)
+            if response_coingecko.status_code != HTTPStatus.OK:
+                raise Exception
+            data_coingecko = response_coingecko.json()
+            btc_rate = data_coingecko['bitcoin']['rub']
+
+            date_yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%d-%m-%Y')
+            response_coingecko_yesterday = requests.get(URL_CURRENCY_COINGECKO_BTC_YESTERDAY.format(date=date_yesterday), timeout=TIMEOUT)
+            if response_coingecko_yesterday.status_code != HTTPStatus.OK:
+                raise Exception
+            data_coingecko_yesterday = response_coingecko_yesterday.json()
+            btc_prev_rate = data_coingecko_yesterday['market_data']['current_price']['rub']
+
+            usd_change = usd_rate - usd_prev_rate
+            eur_change = eur_rate - eur_prev_rate
+            btc_change = btc_rate - btc_prev_rate
 
             message_text = (
                 'Курс валют. '
-                f'Доллар: {cur_usd} руб. '
-                f'Евро: {cur_eur} руб. '
-                f'Биткоин: {cur_btc} руб. '
+                f'Доллар: {usd_rate:.2f} руб. ({usd_change:+.2f}), '
+                f'Евро: {eur_rate:.2f} руб. ({eur_change:+.2f}), '
+                f'Биткоин: {btc_rate:.2f} руб. ({btc_change:+.2f}) '
             )
 
         except Exception as ex:

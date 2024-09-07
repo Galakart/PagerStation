@@ -556,8 +556,8 @@ curl -X POST http://192.168.1.50:8013/messages/ \
 #### Статьи и видео
 
 - видео на канале **Hot Pixel:**  
-https://www.youtube.com/watch?v=ukmvlHdsdfc
-https://www.youtube.com/watch?v=_yl8x5P07AI
+https://www.youtube.com/watch?v=ukmvlHdsdfc  
+https://www.youtube.com/watch?v=_yl8x5P07AI  
 - замечательные статьи от **SinuX:**  
 https://mysku.ru/blog/diy/88396.html  
 https://mysku.ru/blog/diy/88811.html  
@@ -571,8 +571,9 @@ https://github.com/F5OEO/rpitx
 - сервис OpenWeatherMap, и оболочка PyOWM - для вытягивания прогноза погоды:  
 https://openweathermap.org/  
 https://pyowm.readthedocs.io/en/latest/
-- сервис CoinGate - курсы валют:  
-https://developer.coingate.com/docs
+- сервисы ЦБ РФ и CoinGecko - курсы валют:  
+https://www.cbr-xml-daily.ru/  
+https://www.coingecko.com/  
 
 Поддержать автора  
 BTC: bc1q5aptd289qsvrtsf9t2z42udda5t70e7hc39sc2
